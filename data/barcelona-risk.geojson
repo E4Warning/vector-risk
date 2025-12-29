@@ -1,0 +1,70 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ciutat Vella",
+        "risk_level": "very_high",
+        "risk_score": 88.5,
+        "district": "Old City"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [2.1774, 41.3825]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Eixample",
+        "risk_level": "high",
+        "risk_score": 76.3,
+        "district": "Central"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [2.1659, 41.3954]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Gràcia",
+        "risk_level": "high",
+        "risk_score": 72.8,
+        "district": "North"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [2.1585, 41.4036]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sants-Montjuïc",
+        "risk_level": "medium",
+        "risk_score": 64.2,
+        "district": "Southwest"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [2.1485, 41.3732]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sant Martí",
+        "risk_level": "high",
+        "risk_score": 78.9,
+        "district": "East"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [2.1975, 41.4167]
+      }
+    }
+  ]
+}

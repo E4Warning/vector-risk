@@ -1,0 +1,70 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Centro",
+        "risk_level": "very_high",
+        "risk_score": 85.7,
+        "zone": "Central"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-43.1778, -22.9099]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Zona Sul",
+        "risk_level": "high",
+        "risk_score": 79.3,
+        "zone": "South"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-43.1845, -22.9707]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Barra da Tijuca",
+        "risk_level": "medium",
+        "risk_score": 68.5,
+        "zone": "West"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-43.3647, -23.0045]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Zona Norte",
+        "risk_level": "very_high",
+        "risk_score": 82.4,
+        "zone": "North"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-43.2695, -22.8753]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Zona Oeste",
+        "risk_level": "high",
+        "risk_score": 75.8,
+        "zone": "West"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-43.5283, -22.9128]
+      }
+    }
+  ]
+}
