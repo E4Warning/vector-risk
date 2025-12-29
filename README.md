@@ -47,7 +47,7 @@ vector-risk/
 
 The application loads data from the following file types:
 
-- **CSV files**: Time-series data with risk levels, temperature, humidity, and case counts
+- **CSV files**: Time-series data with risk levels, temperature, humidity, and mosquito observation counts
 - **GeoJSON files**: Spatial data with geographic features and risk properties
 - **GeoTIFF files**: Raster data for continuous risk surfaces (optional)
 
@@ -55,7 +55,7 @@ The application loads data from the following file types:
 
 **CSV Format:**
 ```csv
-date,risk_level,temperature,humidity,cases
+date,risk_level,temperature,humidity,observations
 2024-01-01,35.2,12.5,65.3,15
 ```
 
@@ -162,6 +162,10 @@ tileLayer: {
 - Firefox (latest)
 - Safari (latest)
 - Mobile browsers (iOS Safari, Chrome Mobile)
+
+## About
+
+The Vector Risk Portals site is being developed under the <a href="https://www.e4warning.eu">E4Warning project</a> (Eco-Epidemiological Intelligence for early Warning and response to mosquito-borne disease risk in Endemic and Emergence settings) funded by the European Union's Horizon Europe programme under Grant Agreement 101086640.
 
 ## License
 

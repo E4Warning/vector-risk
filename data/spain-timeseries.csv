@@ -1,4 +1,4 @@
-date,risk_level,temperature,humidity,cases
+date,risk_level,temperature,humidity,observations
 2024-01-01,35.2,12.5,65.3,15
 2024-02-01,42.8,14.2,68.1,22
 2024-03-01,51.3,17.8,70.5,28

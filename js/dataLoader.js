@@ -123,7 +123,7 @@ class DataLoader {
                 risk_level: Math.random() * 100,
                 temperature: 15 + Math.random() * 20,
                 humidity: 40 + Math.random() * 40,
-                cases: Math.floor(Math.random() * 100)
+                observations: Math.floor(Math.random() * 100)
             });
         }
         
