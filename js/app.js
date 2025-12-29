@@ -344,7 +344,7 @@ async function loadSpainMosquitoAlertData(date) {
             const mbMap = new mapboxgl.Map({
                 container: 'map',
                 style: 'mapbox://styles/johnrbpalmer/cklcc4q673pe517k4n5co81sn',
-                center: { lat: region.center[0], lng: region.center[1] },
+                center: [region.center[1], region.center[0]], // [lng, lat] format for Mapbox GL
                 zoom: region.zoom
             });
             
