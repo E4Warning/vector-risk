@@ -27,6 +27,12 @@ function setupNavigation() {
     // Main navigation links
     document.querySelectorAll('.main-nav a[href^="#"]').forEach(link => {
         link.addEventListener('click', function(e) {
+            // Check if this is a dropdown toggle
+            if (this.classList.contains('dropdown-toggle')) {
+                e.preventDefault();
+                return;
+            }
+            
             if (!this.parentElement.classList.contains('dropdown')) {
                 e.preventDefault();
                 const section = this.getAttribute('href').substring(1);
@@ -46,14 +52,13 @@ function setupNavigation() {
         });
     });
     
-    // Mobile dropdown toggle
-    document.querySelectorAll('.dropdown > a').forEach(link => {
-        link.addEventListener('click', function(e) {
-            if (window.innerWidth <= 768) {
-                e.preventDefault();
-                this.parentElement.classList.toggle('active');
-            }
-        });
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown')) {
+            document.querySelectorAll('.dropdown').forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
+        }
     });
 }
 
@@ -144,6 +149,40 @@ async function showRegion(regionKey) {
     document.querySelectorAll('.main-nav a').forEach(a => {
         a.classList.remove('active');
     });
+    
+    // Check if region is coming soon
+    if (region.comingSoon) {
+        // Show coming soon message
+        const comingSoonSection = document.getElementById('coming-soon-section');
+        const mapContainer = document.querySelector('.map-container');
+        const visualizationSection = document.querySelector('.visualization-section');
+        
+        if (comingSoonSection) {
+            comingSoonSection.style.display = 'block';
+        }
+        if (mapContainer) {
+            mapContainer.style.display = 'none';
+        }
+        if (visualizationSection) {
+            visualizationSection.style.display = 'none';
+        }
+        return;
+    }
+    
+    // Hide coming soon and show map
+    const comingSoonSection = document.getElementById('coming-soon-section');
+    const mapContainer = document.querySelector('.map-container');
+    const visualizationSection = document.querySelector('.visualization-section');
+    
+    if (comingSoonSection) {
+        comingSoonSection.style.display = 'none';
+    }
+    if (mapContainer) {
+        mapContainer.style.display = 'flex';
+    }
+    if (visualizationSection) {
+        visualizationSection.style.display = 'block';
+    }
     
     // Show loading message
     const mapStats = document.getElementById('map-stats');
