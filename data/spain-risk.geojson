@@ -1,0 +1,70 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Madrid",
+        "risk_level": "high",
+        "risk_score": 75.3,
+        "region": "Central Spain"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.7038, 40.4168]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Barcelona",
+        "risk_level": "very_high",
+        "risk_score": 85.6,
+        "region": "Catalonia"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [2.1734, 41.3851]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Valencia",
+        "risk_level": "high",
+        "risk_score": 78.2,
+        "region": "Valencia"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.3763, 39.4699]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Seville",
+        "risk_level": "medium",
+        "risk_score": 68.9,
+        "region": "Andalusia"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-5.9845, 37.3891]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bilbao",
+        "risk_level": "low",
+        "risk_score": 42.5,
+        "region": "Basque Country"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-2.9253, 43.2627]
+      }
+    }
+  ]
+}

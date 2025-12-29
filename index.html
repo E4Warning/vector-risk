@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector Risk Portals</title>
+    <meta name="description" content="Interactive webmaps showing risk of vector mosquitoes for countries and cities">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Vector Risk Portals</h1>
+            <p class="subtitle">Interactive Risk Assessment for Vector-Borne Diseases</p>
+        </div>
+    </header>
+
+    <nav class="main-nav">
+        <div class="container">
+            <ul>
+                <li><a href="#home" class="active">Home</a></li>
+                <li class="dropdown">
+                    <a href="#countries">Countries</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" data-region="spain">Spain</a></li>
+                        <li><a href="#" data-region="brazil">Brazil</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#cities">Cities</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" data-region="barcelona">Barcelona</a></li>
+                        <li><a href="#" data-region="rio-de-janeiro">Rio de Janeiro</a></li>
+                    </ul>
+                </li>
+                <li><a href="#about">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <div id="home-section" class="section active">
+            <div class="container">
+                <div class="hero">
+                    <h2>Welcome to Vector Risk Portals</h2>
+                    <p>Explore interactive maps and visualizations showing the risk of vector mosquitoes across different regions.</p>
+                    <div class="cta-buttons">
+                        <button class="btn btn-primary" onclick="showRegion('spain')">View Spain</button>
+                        <button class="btn btn-primary" onclick="showRegion('brazil')">View Brazil</button>
+                        <button class="btn btn-secondary" onclick="showRegion('barcelona')">View Barcelona</button>
+                        <button class="btn btn-secondary" onclick="showRegion('rio-de-janeiro')">View Rio de Janeiro</button>
+                    </div>
+                </div>
+                
+                <div class="features">
+                    <div class="feature-card">
+                        <h3>🗺️ Interactive Maps</h3>
+                        <p>Explore detailed risk maps with multiple layers and visualization options</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📊 Data Visualizations</h3>
+                        <p>View risk trends and patterns through charts and graphs</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🌍 Multiple Regions</h3>
+                        <p>Access risk data for various countries and cities</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="map-section" class="section">
+            <div class="container-fluid">
+                <div class="map-header">
+                    <h2 id="region-title">Region Risk Map</h2>
+                    <button class="btn btn-back" onclick="showHome()">← Back to Home</button>
+                </div>
+                
+                <div class="map-container">
+                    <div class="map-sidebar">
+                        <div class="sidebar-section">
+                            <h3>Layers</h3>
+                            <div class="layer-controls">
+                                <label>
+                                    <input type="checkbox" id="risk-layer" checked>
+                                    Risk Level
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="temperature-layer">
+                                    Temperature
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="humidity-layer">
+                                    Humidity
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="sidebar-section">
+                            <h3>Risk Legend</h3>
+                            <div class="legend">
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background-color: #d73027;"></span>
+                                    <span>Very High</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background-color: #fc8d59;"></span>
+                                    <span>High</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background-color: #fee090;"></span>
+                                    <span>Medium</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background-color: #91bfdb;"></span>
+                                    <span>Low</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background-color: #4575b4;"></span>
+                                    <span>Very Low</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="sidebar-section">
+                            <h3>Statistics</h3>
+                            <div id="map-stats">
+                                <p>Loading statistics...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="map-wrapper">
+                        <div id="map"></div>
+                    </div>
+                </div>
+                
+                <div class="visualization-section">
+                    <h3>Risk Analysis</h3>
+                    <div class="chart-container">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="about-section" class="section">
+            <div class="container">
+                <h2>About Vector Risk Portals</h2>
+                <p>Vector Risk Portals is an interactive platform for visualizing and analyzing the risk of vector-borne diseases transmitted by mosquitoes. The risk information displayed is generated by predictive models running in companion projects.</p>
+                
+                <h3>Data Sources</h3>
+                <p>The platform accesses risk assessment data from public URLs, including:</p>
+                <ul>
+                    <li>CSV files containing time-series risk data</li>
+                    <li>GeoJSON files with spatial risk information</li>
+                    <li>GeoTIFF files for raster-based risk maps</li>
+                </ul>
+                
+                <h3>Available Regions</h3>
+                <ul>
+                    <li><strong>Countries:</strong> Spain, Brazil</li>
+                    <li><strong>Cities:</strong> Barcelona, Rio de Janeiro</li>
+                </ul>
+                
+                <h3>Technology</h3>
+                <p>This is a static web application built with modern web technologies and served via GitHub Pages. It uses Leaflet for interactive mapping and Chart.js for data visualization.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Vector Risk Portals. Licensed under GNU GPL v3.</p>
+        </div>
+    </footer>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    
+    <!-- GeoTIFF support -->
+    <script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
+    <script src="https://unpkg.com/georaster-layer-for-leaflet@3.10.0/dist/georaster-layer-for-leaflet.min.js"></script>
+    
+    <!-- Application JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/dataLoader.js"></script>
+    <script src="js/mapManager.js"></script>
+    <script src="js/visualization.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "São Paulo",
+        "risk_level": "high",
+        "risk_score": 72.8,
+        "region": "Southeast"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-46.6333, -23.5505]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Rio de Janeiro",
+        "risk_level": "very_high",
+        "risk_score": 81.5,
+        "region": "Southeast"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-43.1729, -22.9068]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Salvador",
+        "risk_level": "very_high",
+        "risk_score": 84.2,
+        "region": "Northeast"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-38.5014, -12.9714]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Brasília",
+        "risk_level": "medium",
+        "risk_score": 65.7,
+        "region": "Central-West"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-47.8825, -15.8267]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Manaus",
+        "risk_level": "very_high",
+        "risk_score": 88.3,
+        "region": "North"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-60.0217, -3.1190]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Porto Alegre",
+        "risk_level": "medium",
+        "risk_score": 58.4,
+        "region": "South"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-51.2177, -30.0346]
+      }
+    }
+  ]
+}
