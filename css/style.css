@@ -344,6 +344,29 @@ main {
     border: 1px solid var(--border-color);
 }
 
+/* Continuous Legend */
+.legend-continuous {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.legend-gradient {
+    width: 40px;
+    height: 150px;
+    background: linear-gradient(to bottom, #d73027, #fc8d59, #fee090, #91bfdb, #4575b4);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+}
+
+.legend-label-top,
+.legend-label-bottom {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+}
+
 .map-wrapper {
     flex: 1;
     border-radius: 10px;
