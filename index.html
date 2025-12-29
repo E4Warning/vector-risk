@@ -29,17 +29,19 @@
             <ul>
                 <li><a href="#home" class="active">Home</a></li>
                 <li class="dropdown">
-                    <a href="#countries">Countries</a>
+                    <a href="#countries" class="dropdown-toggle">Countries</a>
                     <ul class="dropdown-menu">
                         <li><a href="#" data-region="spain">Spain</a></li>
                         <li><a href="#" data-region="brazil">Brazil</a></li>
+                        <li><a href="#" data-region="jamaica">Jamaica</a></li>
                     </ul>
                 </li>
                 <li class="dropdown">
-                    <a href="#cities">Cities</a>
+                    <a href="#cities" class="dropdown-toggle">Cities</a>
                     <ul class="dropdown-menu">
                         <li><a href="#" data-region="barcelona">Barcelona</a></li>
                         <li><a href="#" data-region="rio-de-janeiro">Rio de Janeiro</a></li>
+                        <li><a href="#" data-region="kingston">Kingston</a></li>
                     </ul>
                 </li>
                 <li><a href="#about">About</a></li>
@@ -51,14 +53,17 @@
         <div id="home-section" class="section active">
             <div class="container">
                 <div class="hero">
-                    <h2>Welcome to Vector Risk Portals</h2>
-                    <p>Explore interactive maps and visualizations showing the risk of vector mosquitoes across different regions.</p>
-                    <div class="cta-buttons">
-                        <button class="btn btn-primary" onclick="showRegion('spain')">View Spain</button>
-                        <button class="btn btn-primary" onclick="showRegion('brazil')">View Brazil</button>
-                        <button class="btn btn-secondary" onclick="showRegion('barcelona')">View Barcelona</button>
-                        <button class="btn btn-secondary" onclick="showRegion('rio-de-janeiro')">View Rio de Janeiro</button>
+                    <div class="e4warning-header">
+                        <a href="https://www.e4warning.eu" target="_blank" rel="noopener noreferrer">
+                            <img src="https://www.e4warning.eu/wp-content/uploads/2023/02/E4Warning-logos_2.png" alt="E4Warning Logo" class="e4warning-logo">
+                        </a>
                     </div>
+                    <p class="intro-text">
+                        Vector Risk Portals is an interactive platform for visualizing and analyzing the risk of disease-vector mosquitoes. 
+                        This site is being developed under the <a href="https://www.e4warning.eu" target="_blank" rel="noopener noreferrer">E4Warning project</a> 
+                        (Eco-Epidemiological Intelligence for early Warning and response to mosquito-borne disease risk in Endemic and Emergence settings) 
+                        funded by the European Union's Horizon Europe programme under Grant Agreement 101086640.
+                    </p>
                 </div>
                 
                 <div class="features">
@@ -85,8 +90,21 @@
                     <button class="btn btn-back" onclick="showHome()">← Back to Home</button>
                 </div>
                 
+                <div id="coming-soon-section" class="coming-soon-container" style="display: none;">
+                    <div class="coming-soon-content">
+                        <h2>Coming Soon</h2>
+                        <p>Data for this region is currently being prepared and will be available soon.</p>
+                    </div>
+                </div>
+                
                 <div class="map-container">
                     <div class="map-sidebar">
+                        <div class="sidebar-section" id="date-selector-section" style="display: none;">
+                            <h3>Select Date</h3>
+                            <input type="date" id="data-date-picker" class="date-picker">
+                            <p class="info-text">Data from <a href="https://github.com/Mosquito-Alert/MosquitoAlertES" target="_blank" rel="noopener noreferrer">MosquitoAlertES</a></p>
+                        </div>
+                        
                         <div class="sidebar-section">
                             <h3>Layers</h3>
                             <div class="layer-controls">

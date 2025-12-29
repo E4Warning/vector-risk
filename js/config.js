@@ -9,8 +9,15 @@ const CONFIG = {
             dataSources: {
                 geojson: 'data/spain-risk.geojson',
                 csv: 'data/spain-timeseries.csv',
-                geotiff: 'data/spain-risk.tif'
-            }
+                geotiff: 'data/spain-risk.tif',
+                mosquitoAlertES: {
+                    enabled: true,
+                    baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/',
+                    filePattern: 'muni_preds_{date}.json',
+                    description: 'Data from MosquitoAlertES - Citizen science mosquito surveillance'
+                }
+            },
+            comingSoon: false
         },
         brazil: {
             name: 'Brazil',
@@ -21,7 +28,20 @@ const CONFIG = {
                 geojson: 'data/brazil-risk.geojson',
                 csv: 'data/brazil-timeseries.csv',
                 geotiff: 'data/brazil-risk.tif'
-            }
+            },
+            comingSoon: true
+        },
+        jamaica: {
+            name: 'Jamaica',
+            type: 'country',
+            center: [18.1096, -77.2975],
+            zoom: 8,
+            dataSources: {
+                geojson: 'data/jamaica-risk.geojson',
+                csv: 'data/jamaica-timeseries.csv',
+                geotiff: 'data/jamaica-risk.tif'
+            },
+            comingSoon: true
         },
         barcelona: {
             name: 'Barcelona',
@@ -32,7 +52,8 @@ const CONFIG = {
                 geojson: 'data/barcelona-risk.geojson',
                 csv: 'data/barcelona-timeseries.csv',
                 geotiff: 'data/barcelona-risk.tif'
-            }
+            },
+            comingSoon: false
         },
         'rio-de-janeiro': {
             name: 'Rio de Janeiro',
@@ -43,7 +64,20 @@ const CONFIG = {
                 geojson: 'data/rio-risk.geojson',
                 csv: 'data/rio-timeseries.csv',
                 geotiff: 'data/rio-risk.tif'
-            }
+            },
+            comingSoon: true
+        },
+        kingston: {
+            name: 'Kingston',
+            type: 'city',
+            center: [17.9714, -76.7930],
+            zoom: 11,
+            dataSources: {
+                geojson: 'data/kingston-risk.geojson',
+                csv: 'data/kingston-timeseries.csv',
+                geotiff: 'data/kingston-risk.tif'
+            },
+            comingSoon: true
         }
     },
     

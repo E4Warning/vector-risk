@@ -27,6 +27,12 @@ function setupNavigation() {
     // Main navigation links
     document.querySelectorAll('.main-nav a[href^="#"]').forEach(link => {
         link.addEventListener('click', function(e) {
+            // Check if this is a dropdown toggle
+            if (this.classList.contains('dropdown-toggle')) {
+                e.preventDefault();
+                return;
+            }
+            
             if (!this.parentElement.classList.contains('dropdown')) {
                 e.preventDefault();
                 const section = this.getAttribute('href').substring(1);
@@ -46,14 +52,13 @@ function setupNavigation() {
         });
     });
     
-    // Mobile dropdown toggle
-    document.querySelectorAll('.dropdown > a').forEach(link => {
-        link.addEventListener('click', function(e) {
-            if (window.innerWidth <= 768) {
-                e.preventDefault();
-                this.parentElement.classList.toggle('active');
-            }
-        });
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown')) {
+            document.querySelectorAll('.dropdown').forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
+        }
     });
 }
 
@@ -145,10 +150,71 @@ async function showRegion(regionKey) {
         a.classList.remove('active');
     });
     
+    // Check if region is coming soon
+    if (region.comingSoon) {
+        // Show coming soon message
+        const comingSoonSection = document.getElementById('coming-soon-section');
+        const mapContainer = document.querySelector('.map-container');
+        const visualizationSection = document.querySelector('.visualization-section');
+        
+        if (comingSoonSection) {
+            comingSoonSection.style.display = 'block';
+        }
+        if (mapContainer) {
+            mapContainer.style.display = 'none';
+        }
+        if (visualizationSection) {
+            visualizationSection.style.display = 'none';
+        }
+        return;
+    }
+    
+    // Hide coming soon and show map
+    const comingSoonSection = document.getElementById('coming-soon-section');
+    const mapContainer = document.querySelector('.map-container');
+    const visualizationSection = document.querySelector('.visualization-section');
+    
+    if (comingSoonSection) {
+        comingSoonSection.style.display = 'none';
+    }
+    if (mapContainer) {
+        mapContainer.style.display = 'flex';
+    }
+    if (visualizationSection) {
+        visualizationSection.style.display = 'block';
+    }
+    
     // Show loading message
     const mapStats = document.getElementById('map-stats');
     if (mapStats) {
         mapStats.innerHTML = '<p>Loading data...</p>';
+    }
+    
+    // Show/hide date selector for Spain with MosquitoAlertES data
+    const dateSelectorSection = document.getElementById('date-selector-section');
+    if (dateSelectorSection) {
+        if (regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled) {
+            dateSelectorSection.style.display = 'block';
+            // Set default date to today
+            const datePicker = document.getElementById('data-date-picker');
+            if (datePicker) {
+                if (!datePicker.value) {
+                    const today = new Date().toISOString().split('T')[0];
+                    datePicker.value = today;
+                }
+                
+                // Remove existing listeners and add new one to prevent duplicates
+                const newDatePicker = datePicker.cloneNode(true);
+                datePicker.parentNode.replaceChild(newDatePicker, datePicker);
+                
+                // Add event listener for date changes
+                newDatePicker.addEventListener('change', function() {
+                    loadSpainMosquitoAlertData(this.value);
+                });
+            }
+        } else {
+            dateSelectorSection.style.display = 'none';
+        }
     }
     
     try {
@@ -191,3 +257,60 @@ document.addEventListener('visibilitychange', function() {
         // Optionally pause animations or cleanup
     }
 });
+
+/**
+ * Load MosquitoAlert Spain data for a specific date
+ * @param {string} date - Date in YYYY-MM-DD format
+ */
+async function loadSpainMosquitoAlertData(date) {
+    const region = CONFIG.regions['spain'];
+    if (!region || !region.dataSources.mosquitoAlertES) {
+        console.error('MosquitoAlertES configuration not found for Spain');
+        return;
+    }
+    
+    const config = region.dataSources.mosquitoAlertES;
+    const filename = config.filePattern.replace('{date}', date);
+    const url = config.baseUrl + filename;
+    
+    try {
+        // Escape HTML to prevent XSS
+        const escapeHtml = (str) => {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        };
+        
+        const mapStats = document.getElementById('map-stats');
+        if (mapStats) {
+            mapStats.innerHTML = '<p>Loading data for ' + escapeHtml(date) + '...</p>';
+        }
+        
+        // Note: This is a placeholder implementation
+        // Full implementation would:
+        // 1. Fetch the JSON data from the URL
+        // 2. Convert municipality data to GeoJSON features
+        // 3. Load municipality boundaries to join with prediction data
+        // 4. Display on map with appropriate styling
+        // 5. Update statistics
+        
+        if (mapStats) {
+            const escapedDate = escapeHtml(date);
+            const escapedBaseUrl = escapeHtml(config.baseUrl);
+            
+            mapStats.innerHTML = `
+                <p><strong>Region:</strong> Spain</p>
+                <p><strong>Date:</strong> ${escapedDate}</p>
+                <p><strong>Data Source:</strong> MosquitoAlertES</p>
+                <p class="info-message">Full data integration coming soon. See <a href="${escapedBaseUrl}" target="_blank" rel="noopener noreferrer">MosquitoAlertES repository</a> for data details.</p>
+            `;
+        }
+        
+    } catch (error) {
+        console.error('Error loading MosquitoAlertES data:', error);
+        const mapStats = document.getElementById('map-stats');
+        if (mapStats) {
+            mapStats.innerHTML = '<p class="error-message">Error loading MosquitoAlertES data.</p>';
+        }
+    }
+}
