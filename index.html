@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E4Warning Vector Risk Portals</title>
     <meta name="description" content="Interactive webmaps showing risk of vector mosquitoes for countries and cities">
+    <link rel="icon" type="image/png" href="https://www.e4warning.eu/wp-content/uploads/2023/02/E4Warning-logos_2.png">
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -20,7 +21,6 @@
     
     <!-- Chroma.js for color scales -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"
-            integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb"
             crossorigin="anonymous"></script>
     
     <link rel="stylesheet" href="css/style.css">
@@ -29,7 +29,7 @@
     <header>
         <div class="container">
             <h1>E4Warning Vector Risk Portals</h1>
-            <p class="subtitle">Interactive Risk Assessment for Vector-Borne Diseases</p>
+            <p class="subtitle">Interactive Risk Assessment for Disease-Vector Mosquitoes</p>
         </div>
     </header>
 
@@ -123,12 +123,12 @@
                                     Risk Level
                                 </label>
                                 <label>
-                                    <input type="checkbox" id="temperature-layer">
-                                    Temperature
+                                    <input type="checkbox" id="observations-layer">
+                                    Observations
                                 </label>
                                 <label>
-                                    <input type="checkbox" id="humidity-layer">
-                                    Humidity
+                                    <input type="checkbox" id="range-layer">
+                                    Range
                                 </label>
                             </div>
                         </div>
@@ -173,7 +173,7 @@
                 </div>
                 
                 <div class="visualization-section">
-                    <h3>Risk Analysis</h3>
+                    <h3>Time Series</h3>
                     <div class="chart-container">
                         <canvas id="riskChart"></canvas>
                     </div>

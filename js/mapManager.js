@@ -5,8 +5,8 @@ class MapManager {
         this.mbMap = null; // Mapbox GL map instance
         this.layers = {
             risk: null,
-            temperature: null,
-            humidity: null,
+            observations: null,  // Placeholder for future observations layer
+            range: null,         // Placeholder for future range layer
             geotiff: null
         };
         this.currentRegion = null;
@@ -232,8 +232,8 @@ class MapManager {
         }
         this.layers = {
             risk: null,
-            temperature: null,
-            humidity: null,
+            observations: null,  // Placeholder for future observations layer
+            range: null,         // Placeholder for future range layer
             geotiff: null
         };
     }

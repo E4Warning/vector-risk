@@ -79,8 +79,8 @@ function setupNavigation() {
  */
 function setupLayerControls() {
     const riskLayerCheckbox = document.getElementById('risk-layer');
-    const temperatureLayerCheckbox = document.getElementById('temperature-layer');
-    const humidityLayerCheckbox = document.getElementById('humidity-layer');
+    const observationsLayerCheckbox = document.getElementById('observations-layer');
+    const rangeLayerCheckbox = document.getElementById('range-layer');
     
     if (riskLayerCheckbox) {
         riskLayerCheckbox.addEventListener('change', function() {
@@ -88,15 +88,15 @@ function setupLayerControls() {
         });
     }
     
-    if (temperatureLayerCheckbox) {
-        temperatureLayerCheckbox.addEventListener('change', function() {
-            mapManager.toggleLayer('temperature', this.checked);
+    if (observationsLayerCheckbox) {
+        observationsLayerCheckbox.addEventListener('change', function() {
+            mapManager.toggleLayer('observations', this.checked);
         });
     }
     
-    if (humidityLayerCheckbox) {
-        humidityLayerCheckbox.addEventListener('change', function() {
-            mapManager.toggleLayer('humidity', this.checked);
+    if (rangeLayerCheckbox) {
+        rangeLayerCheckbox.addEventListener('change', function() {
+            mapManager.toggleLayer('range', this.checked);
         });
     }
 }

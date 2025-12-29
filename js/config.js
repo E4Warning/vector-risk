@@ -10,6 +10,7 @@ const CONFIG = {
                 geojson: 'data/spain-risk.geojson',
                 csv: 'data/spain-timeseries.csv',
                 geotiff: 'data/spain-risk.tif',
+                timeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/time_profile_country.json',
                 mosquitoAlertES: {
                     enabled: true,
                     baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/',
@@ -58,6 +59,7 @@ const CONFIG = {
                 geojson: 'data/barcelona-risk.geojson',
                 csv: 'data/barcelona-timeseries.csv',
                 geotiff: 'data/barcelona-risk.tif',
+                timeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/refs/heads/main/data/bcn_time_profile_data.json',
                 mosquitoAlertBCN: {
                     enabled: true,
                     baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/main/data/',

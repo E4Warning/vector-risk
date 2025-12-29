@@ -7,6 +7,30 @@ class Visualization {
     }
 
     /**
+     * Load time series data from URL or fallback to CSV
+     * @param {Object} region - Region configuration object
+     * @returns {Promise<Array>} Chart data
+     */
+    async loadTimeSeriesData(region) {
+        if (region.dataSources.timeseries) {
+            try {
+                const response = await fetch(region.dataSources.timeseries);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error loading time series data:', error);
+                // Fallback to CSV if JSON fails
+                return await dataLoader.loadCSV(region.dataSources.csv);
+            }
+        } else {
+            // Use CSV data if no timeseries URL configured
+            return await dataLoader.loadCSV(region.dataSources.csv);
+        }
+    }
+
+    /**
      * Create or update a risk chart
      * @param {string} regionKey - Region key
      */
@@ -17,21 +41,25 @@ class Visualization {
         const region = CONFIG.regions[regionKey];
         if (!region) return;
 
-        // Load CSV data
-        const csvData = await dataLoader.loadCSV(region.dataSources.csv);
+        // Load time series data
+        const chartData = await this.loadTimeSeriesData(region);
 
-        // Prepare chart data - extract all arrays in single iteration
+        // Prepare chart data
         const labels = [];
         const riskData = [];
-        const temperatureData = [];
-        const humidityData = [];
         
-        csvData.forEach(item => {
-            labels.push(item.date || '');
-            riskData.push(parseFloat(item.risk_level || 0));
-            temperatureData.push(parseFloat(item.temperature || 0));
-            humidityData.push(parseFloat(item.humidity || 0));
-        });
+        if (Array.isArray(chartData)) {
+            // Handle both JSON array and CSV data
+            chartData.forEach(item => {
+                // For JSON data, try 'date' or 'week' or 'period' field
+                const dateLabel = item.date || item.week || item.period || item.time || '';
+                labels.push(dateLabel);
+                
+                // For risk, try various field names
+                const riskValue = parseFloat(item.risk_level || item.vri || item.risk || item.value || 0);
+                riskData.push(riskValue);
+            });
+        }
 
         // Destroy existing chart
         if (this.chart) {
@@ -53,30 +81,12 @@ class Visualization {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Risk Level',
+                        label: 'Vector Risk Index',
                         data: riskData,
                         borderColor: CONFIG.riskColors.very_high,
                         backgroundColor: addAlpha(CONFIG.riskColors.very_high, this.CHART_OPACITY),
                         tension: 0.4,
                         yAxisID: 'y'
-                    },
-                    {
-                        label: 'Temperature (°C)',
-                        data: temperatureData,
-                        borderColor: '#ff9800',
-                        backgroundColor: addAlpha('#ff9800', this.CHART_OPACITY),
-                        tension: 0.4,
-                        yAxisID: 'y1',
-                        hidden: true
-                    },
-                    {
-                        label: 'Humidity (%)',
-                        data: humidityData,
-                        borderColor: '#2196f3',
-                        backgroundColor: addAlpha('#2196f3', this.CHART_OPACITY),
-                        tension: 0.4,
-                        yAxisID: 'y1',
-                        hidden: true
                     }
                 ]
             },
@@ -90,7 +100,7 @@ class Visualization {
                 plugins: {
                     title: {
                         display: true,
-                        text: `Risk Trends for ${region.name}`
+                        text: `Vector Risk Time Series for ${region.name}`
                     },
                     legend: {
                         display: true,
@@ -104,7 +114,7 @@ class Visualization {
                                     label += ': ';
                                 }
                                 if (context.parsed.y !== null) {
-                                    label += context.parsed.y.toFixed(1);
+                                    label += context.parsed.y.toFixed(2);
                                 }
                                 return label;
                             }
@@ -118,22 +128,9 @@ class Visualization {
                         position: 'left',
                         title: {
                             display: true,
-                            text: 'Risk Level'
+                            text: 'Vector Risk Index'
                         },
-                        min: 0,
-                        max: 100
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: {
-                            display: true,
-                            text: 'Temperature / Humidity'
-                        },
-                        grid: {
-                            drawOnChartArea: false
-                        }
+                        min: 0
                     }
                 }
             }
