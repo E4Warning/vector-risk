@@ -274,9 +274,16 @@ async function loadSpainMosquitoAlertData(date) {
     const url = config.baseUrl + filename;
     
     try {
+        // Escape HTML to prevent XSS
+        const escapeHtml = (str) => {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        };
+        
         const mapStats = document.getElementById('map-stats');
         if (mapStats) {
-            mapStats.innerHTML = '<p>Loading data for ' + date + '...</p>';
+            mapStats.innerHTML = '<p>Loading data for ' + escapeHtml(date) + '...</p>';
         }
         
         // Note: This is a placeholder implementation
@@ -288,13 +295,6 @@ async function loadSpainMosquitoAlertData(date) {
         // 5. Update statistics
         
         if (mapStats) {
-            // Escape HTML to prevent XSS
-            const escapeHtml = (str) => {
-                const div = document.createElement('div');
-                div.textContent = str;
-                return div.innerHTML;
-            };
-            
             const escapedDate = escapeHtml(date);
             const escapedBaseUrl = escapeHtml(config.baseUrl);
             
