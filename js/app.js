@@ -1,4 +1,16 @@
 // Main application logic
+
+/**
+ * Escape HTML to prevent XSS attacks
+ * @param {string} str - String to escape
+ * @returns {string} Escaped string
+ */
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
@@ -303,13 +315,6 @@ async function loadSpainMosquitoAlertData(date) {
     const url = config.baseUrl + filename;
     
     try {
-        // Escape HTML to prevent XSS
-        const escapeHtml = (str) => {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        };
-        
         const mapStats = document.getElementById('map-stats');
         if (mapStats) {
             mapStats.innerHTML = '<p>Loading data for ' + escapeHtml(date) + '...</p>';
@@ -339,8 +344,8 @@ async function loadSpainMosquitoAlertData(date) {
             const mbMap = new mapboxgl.Map({
                 container: 'map',
                 style: 'mapbox://styles/johnrbpalmer/cklcc4q673pe517k4n5co81sn',
-                center: { lat: 40.1467, lng: -3.4872 },
-                zoom: 5
+                center: { lat: region.center[0], lng: region.center[1] },
+                zoom: region.zoom
             });
             
             // Store reference for cleanup
@@ -458,13 +463,6 @@ async function loadBarcelonaMosquitoAlertData(date) {
     const url = config.baseUrl + filename;
     
     try {
-        // Escape HTML to prevent XSS
-        const escapeHtml = (str) => {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        };
-        
         const mapStats = document.getElementById('map-stats');
         if (mapStats) {
             mapStats.innerHTML = '<p>Loading data for ' + escapeHtml(date) + '...</p>';
