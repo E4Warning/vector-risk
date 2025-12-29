@@ -116,6 +116,16 @@
                         </div>
                         
                         <div class="sidebar-section">
+                            <h3>Basemap</h3>
+                            <select id="basemap-selector" class="basemap-selector">
+                                <option value="osm">OpenStreetMap</option>
+                                <option value="osm-light">Light Street Map</option>
+                                <option value="satellite">Satellite</option>
+                                <option value="topo">Topographic</option>
+                            </select>
+                        </div>
+                        
+                        <div class="sidebar-section">
                             <h3>Layers</h3>
                             <div class="layer-controls">
                                 <label>
@@ -134,6 +144,16 @@
                         </div>
                         
                         <div class="sidebar-section">
+                            <h3>Transparency</h3>
+                            <div class="transparency-control">
+                                <label for="transparency-slider">
+                                    <span>Opacity: <span id="transparency-value">70</span>%</span>
+                                </label>
+                                <input type="range" id="transparency-slider" min="0" max="100" value="70" class="transparency-slider">
+                            </div>
+                        </div>
+                        
+                        <div class="sidebar-section">
                             <h3>Risk Legend</h3>
                             <div class="legend-continuous">
                                 <div class="legend-label-top">High</div>
@@ -146,6 +166,17 @@
                             <h3>Statistics</h3>
                             <div id="map-stats">
                                 <p>Loading statistics...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="sidebar-section" id="series-selector-section" style="display: none;">
+                            <h3>Time Series</h3>
+                            <div class="series-controls">
+                                <label>
+                                    <input type="checkbox" id="series-citywide" checked>
+                                    <span id="series-citywide-label">Citywide</span>
+                                </label>
+                                <div id="additional-series-list"></div>
                             </div>
                         </div>
                     </div>

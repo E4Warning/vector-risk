@@ -3,6 +3,9 @@ class MapManager {
     constructor() {
         this.map = null;
         this.mbMap = null; // Mapbox GL map instance
+        this.baseLayer = null; // Store reference to base tile layer
+        this.currentBasemap = 'osm'; // Track current basemap
+        this.currentOpacity = 0.7; // Default opacity
         this.layers = {
             risk: null,
             observations: null,  // Placeholder for future observations layer
@@ -22,12 +25,70 @@ class MapManager {
 
         this.map = L.map('map').setView(CONFIG.defaultCenter, CONFIG.defaultZoom);
         
-        L.tileLayer(CONFIG.tileLayer.url, {
-            attribution: CONFIG.tileLayer.attribution,
-            maxZoom: 19
+        const basemap = CONFIG.basemaps[this.currentBasemap];
+        this.baseLayer = L.tileLayer(basemap.url, {
+            attribution: basemap.attribution,
+            maxZoom: basemap.maxZoom
         }).addTo(this.map);
 
         return this.map;
+    }
+
+    /**
+     * Switch basemap
+     * @param {string} basemapKey - Key for the basemap in CONFIG.basemaps
+     */
+    switchBasemap(basemapKey) {
+        if (!this.map || !CONFIG.basemaps[basemapKey]) {
+            return;
+        }
+        
+        // Remove old base layer
+        if (this.baseLayer) {
+            this.map.removeLayer(this.baseLayer);
+        }
+        
+        // Add new base layer
+        const basemap = CONFIG.basemaps[basemapKey];
+        this.baseLayer = L.tileLayer(basemap.url, {
+            attribution: basemap.attribution,
+            maxZoom: basemap.maxZoom
+        }).addTo(this.map);
+        
+        // Move base layer to back
+        this.baseLayer.bringToBack();
+        
+        this.currentBasemap = basemapKey;
+    }
+
+    /**
+     * Set opacity for risk layers
+     * @param {number} opacity - Opacity value between 0 and 1
+     */
+    setLayerOpacity(opacity) {
+        this.currentOpacity = opacity;
+        
+        // Update GeoJSON layer opacity
+        if (this.layers.risk) {
+            this.layers.risk.setStyle({
+                fillOpacity: opacity
+            });
+        }
+        
+        // Update GeoTIFF layer opacity
+        if (this.layers.geotiff && this.layers.geotiff.setOpacity) {
+            this.layers.geotiff.setOpacity(opacity);
+        }
+        
+        // Update Mapbox GL map layer opacity if present
+        if (this.mbMap) {
+            if (this.mbMap.getLayer('muni-high-res')) {
+                this.mbMap.setPaintProperty('muni-high-res', 'fill-opacity', opacity);
+            }
+            if (this.mbMap.getLayer('muni-low-res')) {
+                this.mbMap.setPaintProperty('muni-low-res', 'fill-opacity', opacity);
+            }
+        }
     }
 
     /**
@@ -109,7 +170,7 @@ class MapManager {
 
         this.layers.geotiff = new window.GeoRasterLayer({
             georaster: georaster,
-            opacity: 0.7,
+            opacity: this.currentOpacity,
             pixelValuesToColorFn: (values) => {
                 const value = values[0];
                 if (value === null || value === undefined) return null;
@@ -138,7 +199,7 @@ class MapManager {
             weight: 2,
             opacity: 1,
             color: 'white',
-            fillOpacity: 0.7
+            fillOpacity: this.currentOpacity
         };
     }
 

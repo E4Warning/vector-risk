@@ -11,6 +11,7 @@ const CONFIG = {
                 csv: 'data/spain-timeseries.csv',
                 geotiff: 'data/spain-risk.tif',
                 timeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/time_profile_country.json',
+                ccaaTimeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/time_profile_ccaas.json',
                 mosquitoAlertES: {
                     enabled: true,
                     baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/',
@@ -60,6 +61,7 @@ const CONFIG = {
                 csv: 'data/barcelona-timeseries.csv',
                 geotiff: 'data/barcelona-risk.tif',
                 timeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/refs/heads/main/data/bcn_time_profile_data.json',
+                districtTimeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/refs/heads/main/data/bcn_district_means.json',
                 mosquitoAlertBCN: {
                     enabled: true,
                     baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/main/data/',
@@ -115,5 +117,33 @@ const CONFIG = {
     tileLayer: {
         url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    },
+    
+    // Available basemaps
+    basemaps: {
+        osm: {
+            name: 'OpenStreetMap',
+            url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        },
+        'osm-light': {
+            name: 'Light Street Map',
+            url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            maxZoom: 19
+        },
+        satellite: {
+            name: 'Satellite',
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+            maxZoom: 19
+        },
+        topo: {
+            name: 'Topographic',
+            url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+            maxZoom: 17
+        }
     }
 };
