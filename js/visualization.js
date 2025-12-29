@@ -7,6 +7,17 @@ class Visualization {
     }
 
     /**
+     * Helper function to add alpha channel to hex color
+     * @param {string} hexColor - Hex color code
+     * @param {number} alpha - Alpha value between 0 and 1
+     * @returns {string} Hex color with alpha
+     */
+    addAlpha(hexColor, alpha) {
+        const alphaHex = Math.round(alpha * 255).toString(16).padStart(2, '0');
+        return hexColor + alphaHex;
+    }
+
+    /**
      * Load time series data from URL or fallback to CSV
      * @param {Object} region - Region configuration object
      * @returns {Promise<Array>} Chart data
@@ -88,12 +99,6 @@ class Visualization {
         // Create new chart
         const ctx = canvas.getContext('2d');
         
-        // Helper function to add alpha to hex color
-        const addAlpha = (hexColor, alpha) => {
-            const alphaHex = Math.round(alpha * 255).toString(16).padStart(2, '0');
-            return hexColor + alphaHex;
-        };
-        
         this.chart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -103,7 +108,7 @@ class Visualization {
                         label: 'Vector Risk Index',
                         data: riskData,
                         borderColor: CONFIG.riskColors.very_high,
-                        backgroundColor: addAlpha(CONFIG.riskColors.very_high, this.CHART_OPACITY),
+                        backgroundColor: this.addAlpha(CONFIG.riskColors.very_high, this.CHART_OPACITY),
                         tension: 0.4,
                         yAxisID: 'y'
                     }
@@ -185,12 +190,6 @@ class Visualization {
         // Prepare datasets
         const datasets = [];
         
-        // Helper function to add alpha to hex color
-        const addAlpha = (hexColor, alpha) => {
-            const alphaHex = Math.round(alpha * 255).toString(16).padStart(2, '0');
-            return hexColor + alphaHex;
-        };
-        
         // Add citywide data
         const citywideLabels = [];
         const citywideValues = [];
@@ -205,7 +204,7 @@ class Visualization {
             label: 'Barcelona Citywide',
             data: citywideValues,
             borderColor: CONFIG.riskColors.very_high,
-            backgroundColor: addAlpha(CONFIG.riskColors.very_high, this.CHART_OPACITY),
+            backgroundColor: this.addAlpha(CONFIG.riskColors.very_high, this.CHART_OPACITY),
             tension: 0.4,
             hidden: false
         });
@@ -237,7 +236,7 @@ class Visualization {
                 label: districtName,
                 data: districtValues,
                 borderColor: color,
-                backgroundColor: addAlpha(color, this.CHART_OPACITY),
+                backgroundColor: this.addAlpha(color, this.CHART_OPACITY),
                 tension: 0.4,
                 hidden: true // Start hidden
             });
@@ -348,12 +347,6 @@ class Visualization {
         // Prepare datasets
         const datasets = [];
         
-        // Helper function to add alpha to hex color
-        const addAlpha = (hexColor, alpha) => {
-            const alphaHex = Math.round(alpha * 255).toString(16).padStart(2, '0');
-            return hexColor + alphaHex;
-        };
-        
         // Add countrywide data
         const countrywideLabels = [];
         const countrywideValues = [];
@@ -368,7 +361,7 @@ class Visualization {
             label: 'Spain Countrywide',
             data: countrywideValues,
             borderColor: CONFIG.riskColors.very_high,
-            backgroundColor: addAlpha(CONFIG.riskColors.very_high, this.CHART_OPACITY),
+            backgroundColor: this.addAlpha(CONFIG.riskColors.very_high, this.CHART_OPACITY),
             tension: 0.4,
             hidden: false
         });
@@ -401,7 +394,7 @@ class Visualization {
                 label: ccaaName,
                 data: ccaaValues,
                 borderColor: color,
-                backgroundColor: addAlpha(color, this.CHART_OPACITY),
+                backgroundColor: this.addAlpha(color, this.CHART_OPACITY),
                 tension: 0.4,
                 hidden: true // Start hidden
             });
@@ -519,6 +512,7 @@ class Visualization {
         
         // Create checkboxes for each series
         let index = 1; // 0 is citywide
+        const self = this; // Store reference to this for use in event listener
         Array.from(seriesNames).sort().forEach(name => {
             const label = document.createElement('label');
             const checkbox = document.createElement('input');
@@ -528,10 +522,10 @@ class Visualization {
             
             // Add event listener
             checkbox.addEventListener('change', function() {
-                if (visualization.chart) {
-                    const meta = visualization.chart.getDatasetMeta(this.dataset.index);
+                if (self.chart) {
+                    const meta = self.chart.getDatasetMeta(this.dataset.index);
                     meta.hidden = !this.checked;
-                    visualization.chart.update();
+                    self.chart.update();
                 }
             });
             
