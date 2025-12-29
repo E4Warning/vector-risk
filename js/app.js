@@ -288,11 +288,21 @@ async function loadSpainMosquitoAlertData(date) {
         // 5. Update statistics
         
         if (mapStats) {
+            // Escape HTML to prevent XSS
+            const escapeHtml = (str) => {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            };
+            
+            const escapedDate = escapeHtml(date);
+            const escapedBaseUrl = escapeHtml(config.baseUrl);
+            
             mapStats.innerHTML = `
                 <p><strong>Region:</strong> Spain</p>
-                <p><strong>Date:</strong> ${date}</p>
+                <p><strong>Date:</strong> ${escapedDate}</p>
                 <p><strong>Data Source:</strong> MosquitoAlertES</p>
-                <p class="info-message">Full data integration coming soon. See <a href="${config.baseUrl}" target="_blank">MosquitoAlertES repository</a> for data details.</p>
+                <p class="info-message">Full data integration coming soon. See <a href="${escapedBaseUrl}" target="_blank" rel="noopener noreferrer">MosquitoAlertES repository</a> for data details.</p>
             `;
         }
         
