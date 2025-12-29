@@ -20,10 +20,10 @@ class Visualization {
         let chartData;
         
         // Load data based on region
-        if (regionKey === 'spain') {
+        if (regionKey === 'spain' && region.dataSources.timeseries) {
             // Load Spain time series data
             try {
-                const response = await fetch('https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/time_profile_country.json');
+                const response = await fetch(region.dataSources.timeseries);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -33,10 +33,10 @@ class Visualization {
                 // Fallback to CSV if JSON fails
                 chartData = await dataLoader.loadCSV(region.dataSources.csv);
             }
-        } else if (regionKey === 'barcelona') {
+        } else if (regionKey === 'barcelona' && region.dataSources.timeseries) {
             // Load Barcelona time series data
             try {
-                const response = await fetch('https://raw.githubusercontent.com/Mosquito-Alert/bcn/refs/heads/main/data/bcn_time_profile_data.json');
+                const response = await fetch(region.dataSources.timeseries);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
