@@ -9,7 +9,13 @@ const CONFIG = {
             dataSources: {
                 geojson: 'data/spain-risk.geojson',
                 csv: 'data/spain-timeseries.csv',
-                geotiff: 'data/spain-risk.tif'
+                geotiff: 'data/spain-risk.tif',
+                mosquitoAlertES: {
+                    enabled: true,
+                    baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/',
+                    filePattern: 'muni_preds_{date}.json',
+                    description: 'Data from MosquitoAlertES - Citizen science mosquito surveillance'
+                }
             },
             comingSoon: false
         },

@@ -190,6 +190,27 @@ async function showRegion(regionKey) {
         mapStats.innerHTML = '<p>Loading data...</p>';
     }
     
+    // Show/hide date selector for Spain with MosquitoAlertES data
+    const dateSelectorSection = document.getElementById('date-selector-section');
+    if (dateSelectorSection) {
+        if (regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled) {
+            dateSelectorSection.style.display = 'block';
+            // Set default date to today
+            const datePicker = document.getElementById('data-date-picker');
+            if (datePicker && !datePicker.value) {
+                const today = new Date().toISOString().split('T')[0];
+                datePicker.value = today;
+                
+                // Add event listener for date changes
+                datePicker.addEventListener('change', function() {
+                    loadSpainMosquitoAlertData(this.value);
+                });
+            }
+        } else {
+            dateSelectorSection.style.display = 'none';
+        }
+    }
+    
     try {
         // Load map data
         await mapManager.loadRegion(regionKey);
@@ -230,3 +251,54 @@ document.addEventListener('visibilitychange', function() {
         // Optionally pause animations or cleanup
     }
 });
+
+/**
+ * Load MosquitoAlert Spain data for a specific date
+ * @param {string} date - Date in YYYY-MM-DD format
+ */
+async function loadSpainMosquitoAlertData(date) {
+    console.log('Loading MosquitoAlertES data for date:', date);
+    
+    const region = CONFIG.regions['spain'];
+    if (!region || !region.dataSources.mosquitoAlertES) {
+        console.error('MosquitoAlertES configuration not found for Spain');
+        return;
+    }
+    
+    const config = region.dataSources.mosquitoAlertES;
+    const filename = config.filePattern.replace('{date}', date);
+    const url = config.baseUrl + filename;
+    
+    try {
+        const mapStats = document.getElementById('map-stats');
+        if (mapStats) {
+            mapStats.innerHTML = '<p>Loading data for ' + date + '...</p>';
+        }
+        
+        // Note: This is a placeholder implementation
+        // Full implementation would:
+        // 1. Fetch the JSON data from the URL
+        // 2. Convert municipality data to GeoJSON features
+        // 3. Load municipality boundaries to join with prediction data
+        // 4. Display on map with appropriate styling
+        // 5. Update statistics
+        
+        console.log('Would load data from:', url);
+        
+        if (mapStats) {
+            mapStats.innerHTML = `
+                <p><strong>Region:</strong> Spain</p>
+                <p><strong>Date:</strong> ${date}</p>
+                <p><strong>Data Source:</strong> MosquitoAlertES</p>
+                <p class="info-message">Full data integration coming soon. See <a href="${config.baseUrl}" target="_blank">MosquitoAlertES repository</a> for data details.</p>
+            `;
+        }
+        
+    } catch (error) {
+        console.error('Error loading MosquitoAlertES data:', error);
+        const mapStats = document.getElementById('map-stats');
+        if (mapStats) {
+            mapStats.innerHTML = '<p class="error-message">Error loading MosquitoAlertES data.</p>';
+        }
+    }
+}

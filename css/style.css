@@ -298,6 +298,30 @@ main {
     margin-right: 0.5rem;
 }
 
+.date-picker {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.info-text {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+.info-text a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.info-text a:hover {
+    text-decoration: underline;
+}
+
 .legend {
     display: flex;
     flex-direction: column;
