@@ -86,6 +86,8 @@ header .subtitle {
 }
 
 .dropdown-menu {
+    /* !important is needed here to ensure dropdowns start hidden 
+       and override any conflicting CSS rules */
     display: none !important;
     position: absolute;
     top: 100%;
@@ -99,6 +101,7 @@ header .subtitle {
 
 .dropdown:hover .dropdown-menu,
 .dropdown.active .dropdown-menu {
+    /* !important matches the rule above to ensure proper display */
     display: block !important;
 }
 

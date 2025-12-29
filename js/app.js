@@ -197,12 +197,18 @@ async function showRegion(regionKey) {
             dateSelectorSection.style.display = 'block';
             // Set default date to today
             const datePicker = document.getElementById('data-date-picker');
-            if (datePicker && !datePicker.value) {
-                const today = new Date().toISOString().split('T')[0];
-                datePicker.value = today;
+            if (datePicker) {
+                if (!datePicker.value) {
+                    const today = new Date().toISOString().split('T')[0];
+                    datePicker.value = today;
+                }
+                
+                // Remove existing listeners and add new one to prevent duplicates
+                const newDatePicker = datePicker.cloneNode(true);
+                datePicker.parentNode.replaceChild(newDatePicker, datePicker);
                 
                 // Add event listener for date changes
-                datePicker.addEventListener('change', function() {
+                newDatePicker.addEventListener('change', function() {
                     loadSpainMosquitoAlertData(this.value);
                 });
             }
@@ -257,8 +263,6 @@ document.addEventListener('visibilitychange', function() {
  * @param {string} date - Date in YYYY-MM-DD format
  */
 async function loadSpainMosquitoAlertData(date) {
-    console.log('Loading MosquitoAlertES data for date:', date);
-    
     const region = CONFIG.regions['spain'];
     if (!region || !region.dataSources.mosquitoAlertES) {
         console.error('MosquitoAlertES configuration not found for Spain');
@@ -282,8 +286,6 @@ async function loadSpainMosquitoAlertData(date) {
         // 3. Load municipality boundaries to join with prediction data
         // 4. Display on map with appropriate styling
         // 5. Update statistics
-        
-        console.log('Would load data from:', url);
         
         if (mapStats) {
             mapStats.innerHTML = `
