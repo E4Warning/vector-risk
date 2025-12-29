@@ -165,7 +165,7 @@ tileLayer: {
 
 ## About
 
-The Vector Risk Portals site is being developed under the <a href="https://www.e4warning.eu">E4Warning project</a> (Eco-Epidemiological Intelligence for early Warning and response to mosquito-borne disease risk in Endemic and Emergence settings) funded by the European Union's Horizon Europe programme under Grant Agreement 101086640.
+The Vector Risk Portals site is being developed under the [E4Warning project](https://www.e4warning.eu) (Eco-Epidemiological Intelligence for early Warning and response to mosquito-borne disease risk in Endemic and Emergence settings) funded by the European Union's Horizon Europe programme under Grant Agreement 101086640.
 
 ## License
 
