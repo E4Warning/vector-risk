@@ -31,6 +31,7 @@ class DataLoader {
 
     /**
      * Parse CSV text into an array of objects
+     * Handles basic CSV parsing - for production, consider using a proper CSV library
      * @param {string} csvText - Raw CSV text
      * @returns {Array} Parsed data
      */
@@ -39,6 +40,8 @@ class DataLoader {
         const headers = lines[0].split(',').map(h => h.trim());
         
         return lines.slice(1).map(line => {
+            // Basic CSV parsing - does not handle quoted fields with commas
+            // For complex CSV files, consider using a proper CSV parsing library
             const values = line.split(',').map(v => v.trim());
             const obj = {};
             headers.forEach((header, index) => {
@@ -90,8 +93,8 @@ class DataLoader {
             const arrayBuffer = await response.arrayBuffer();
             
             // Parse GeoTIFF using georaster library if available
-            if (typeof parseGeoraster !== 'undefined') {
-                const georaster = await parseGeoraster(arrayBuffer);
+            if (typeof window.parseGeoraster !== 'undefined') {
+                const georaster = await window.parseGeoraster(arrayBuffer);
                 this.cache.set(url, georaster);
                 return georaster;
             }

@@ -101,12 +101,12 @@ class MapManager {
      * @param {Object} georaster - Parsed GeoTIFF data
      */
     addGeoTIFFLayer(georaster) {
-        if (typeof GeoRasterLayer === 'undefined') {
+        if (typeof window.GeoRasterLayer === 'undefined') {
             console.warn('GeoRasterLayer not available');
             return;
         }
 
-        this.layers.geotiff = new GeoRasterLayer({
+        this.layers.geotiff = new window.GeoRasterLayer({
             georaster: georaster,
             opacity: 0.7,
             pixelValuesToColorFn: (values) => {

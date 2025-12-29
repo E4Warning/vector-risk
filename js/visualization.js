@@ -2,6 +2,8 @@
 class Visualization {
     constructor() {
         this.chart = null;
+        // Configuration constants
+        this.CHART_OPACITY = 0.25; // 40 in hex = 0.25 alpha
     }
 
     /**
@@ -18,11 +20,18 @@ class Visualization {
         // Load CSV data
         const csvData = await dataLoader.loadCSV(region.dataSources.csv);
 
-        // Prepare chart data
-        const labels = csvData.map(item => item.date || '');
-        const riskData = csvData.map(item => parseFloat(item.risk_level || 0));
-        const temperatureData = csvData.map(item => parseFloat(item.temperature || 0));
-        const humidityData = csvData.map(item => parseFloat(item.humidity || 0));
+        // Prepare chart data - extract all arrays in single iteration
+        const labels = [];
+        const riskData = [];
+        const temperatureData = [];
+        const humidityData = [];
+        
+        csvData.forEach(item => {
+            labels.push(item.date || '');
+            riskData.push(parseFloat(item.risk_level || 0));
+            temperatureData.push(parseFloat(item.temperature || 0));
+            humidityData.push(parseFloat(item.humidity || 0));
+        });
 
         // Destroy existing chart
         if (this.chart) {
@@ -31,6 +40,13 @@ class Visualization {
 
         // Create new chart
         const ctx = canvas.getContext('2d');
+        
+        // Helper function to add alpha to hex color
+        const addAlpha = (hexColor, alpha) => {
+            const alphaHex = Math.round(alpha * 255).toString(16).padStart(2, '0');
+            return hexColor + alphaHex;
+        };
+        
         this.chart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -40,7 +56,7 @@ class Visualization {
                         label: 'Risk Level',
                         data: riskData,
                         borderColor: CONFIG.riskColors.very_high,
-                        backgroundColor: CONFIG.riskColors.very_high + '40',
+                        backgroundColor: addAlpha(CONFIG.riskColors.very_high, this.CHART_OPACITY),
                         tension: 0.4,
                         yAxisID: 'y'
                     },
@@ -48,7 +64,7 @@ class Visualization {
                         label: 'Temperature (°C)',
                         data: temperatureData,
                         borderColor: '#ff9800',
-                        backgroundColor: '#ff980040',
+                        backgroundColor: addAlpha('#ff9800', this.CHART_OPACITY),
                         tension: 0.4,
                         yAxisID: 'y1',
                         hidden: true
@@ -57,7 +73,7 @@ class Visualization {
                         label: 'Humidity (%)',
                         data: humidityData,
                         borderColor: '#2196f3',
-                        backgroundColor: '#2196f340',
+                        backgroundColor: addAlpha('#2196f3', this.CHART_OPACITY),
                         tension: 0.4,
                         yAxisID: 'y1',
                         hidden: true

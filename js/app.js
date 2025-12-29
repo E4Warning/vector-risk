@@ -160,7 +160,7 @@ async function showRegion(regionKey) {
     } catch (error) {
         console.error('Error loading region:', error);
         if (mapStats) {
-            mapStats.innerHTML = '<p class="error-message">Error loading data. Using sample data for demonstration.</p>';
+            mapStats.innerHTML = '<p class="error-message">Error loading data. Please check the data sources.</p>';
         }
     }
 }
