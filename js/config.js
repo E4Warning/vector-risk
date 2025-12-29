@@ -14,7 +14,13 @@ const CONFIG = {
                     enabled: true,
                     baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/',
                     filePattern: 'muni_preds_{date}.json',
-                    description: 'Data from MosquitoAlertES - Citizen science mosquito surveillance'
+                    description: 'Data from MosquitoAlertES - Citizen science mosquito surveillance',
+                    municipalityBoundariesLowRes: 'mapbox://johnrbpalmer.4bfv6pbn',
+                    municipalityBoundariesHighRes: 'mapbox://johnrbpalmer.48qdct4s',
+                    municipalitySourceLayerLowRes: 'spain_municipality_boundaries-7m7u82',
+                    municipalitySourceLayerHighRes: 'spain_municipality_boundaries-dzvpt0',
+                    mapboxAccessToken: 'pk.eyJ1Ijoiam9obnJicGFsbWVyIiwiYSI6ImFRTXhoaHcifQ.UwIptK0Is5dJdN8q-1djww',
+                    maxVRI: 0.3
                 }
             },
             comingSoon: false
@@ -51,7 +57,16 @@ const CONFIG = {
             dataSources: {
                 geojson: 'data/barcelona-risk.geojson',
                 csv: 'data/barcelona-timeseries.csv',
-                geotiff: 'data/barcelona-risk.tif'
+                geotiff: 'data/barcelona-risk.tif',
+                mosquitoAlertBCN: {
+                    enabled: true,
+                    baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/main/data/',
+                    filePattern: 'vri{date}.tif',
+                    description: 'Data from MosquitoAlert BCN - High-resolution vector risk index',
+                    mapboxAccessToken: 'pk.eyJ1Ijoiam9obnJicGFsbWVyIiwiYSI6ImFRTXhoaHcifQ.UwIptK0Is5dJdN8q-1djww',
+                    mapboxStyleId: 'johnrbpalmer/cklcc4q673pe517k4n5co81sn',
+                    maxVRI: 0.5
+                }
             },
             comingSoon: false
         },

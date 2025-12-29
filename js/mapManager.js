@@ -2,6 +2,7 @@
 class MapManager {
     constructor() {
         this.map = null;
+        this.mbMap = null; // Mapbox GL map instance
         this.layers = {
             risk: null,
             temperature: null,
@@ -224,6 +225,10 @@ class MapManager {
         if (this.map) {
             this.map.remove();
             this.map = null;
+        }
+        if (this.mbMap) {
+            this.mbMap.remove();
+            this.mbMap = null;
         }
         this.layers = {
             risk: null,

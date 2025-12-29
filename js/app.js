@@ -1,4 +1,16 @@
 // Main application logic
+
+/**
+ * Escape HTML to prevent XSS attacks
+ * @param {string} str - String to escape
+ * @returns {string} Escaped string
+ */
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
@@ -190,10 +202,11 @@ async function showRegion(regionKey) {
         mapStats.innerHTML = '<p>Loading data...</p>';
     }
     
-    // Show/hide date selector for Spain with MosquitoAlertES data
+    // Show/hide date selector for Spain with MosquitoAlertES data or Barcelona
     const dateSelectorSection = document.getElementById('date-selector-section');
     if (dateSelectorSection) {
-        if (regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled) {
+        if ((regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled) ||
+            (regionKey === 'barcelona' && region.dataSources.mosquitoAlertBCN && region.dataSources.mosquitoAlertBCN.enabled)) {
             dateSelectorSection.style.display = 'block';
             // Set default date to today
             const datePicker = document.getElementById('data-date-picker');
@@ -209,8 +222,22 @@ async function showRegion(regionKey) {
                 
                 // Add event listener for date changes
                 newDatePicker.addEventListener('change', function() {
-                    loadSpainMosquitoAlertData(this.value);
+                    if (regionKey === 'spain') {
+                        loadSpainMosquitoAlertData(this.value);
+                    } else if (regionKey === 'barcelona') {
+                        loadBarcelonaMosquitoAlertData(this.value);
+                    }
                 });
+                
+                // Update info text based on region
+                const infoText = dateSelectorSection.querySelector('.info-text');
+                if (infoText) {
+                    if (regionKey === 'spain') {
+                        infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/MosquitoAlertES" target="_blank" rel="noopener noreferrer">MosquitoAlertES</a>';
+                    } else if (regionKey === 'barcelona') {
+                        infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/bcn" target="_blank" rel="noopener noreferrer">MosquitoAlert BCN</a>';
+                    }
+                }
             }
         } else {
             dateSelectorSection.style.display = 'none';
@@ -218,8 +245,22 @@ async function showRegion(regionKey) {
     }
     
     try {
-        // Load map data
-        await mapManager.loadRegion(regionKey);
+        // For Spain with MosquitoAlertES, load the data directly
+        if (regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled) {
+            const datePicker = document.getElementById('data-date-picker');
+            const dateToLoad = datePicker ? datePicker.value : new Date().toISOString().split('T')[0];
+            await loadSpainMosquitoAlertData(dateToLoad);
+        } 
+        // For Barcelona with MosquitoAlertBCN, load the GeoTIFF data
+        else if (regionKey === 'barcelona' && region.dataSources.mosquitoAlertBCN && region.dataSources.mosquitoAlertBCN.enabled) {
+            const datePicker = document.getElementById('data-date-picker');
+            const dateToLoad = datePicker ? datePicker.value : new Date().toISOString().split('T')[0];
+            await loadBarcelonaMosquitoAlertData(dateToLoad);
+        } 
+        // For other regions, load standard map data
+        else {
+            await mapManager.loadRegion(regionKey);
+        }
         
         // Create visualization
         await visualization.createRiskChart(regionKey);
@@ -274,43 +315,248 @@ async function loadSpainMosquitoAlertData(date) {
     const url = config.baseUrl + filename;
     
     try {
-        // Escape HTML to prevent XSS
-        const escapeHtml = (str) => {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        };
-        
         const mapStats = document.getElementById('map-stats');
         if (mapStats) {
             mapStats.innerHTML = '<p>Loading data for ' + escapeHtml(date) + '...</p>';
         }
         
-        // Note: This is a placeholder implementation
-        // Full implementation would:
-        // 1. Fetch the JSON data from the URL
-        // 2. Convert municipality data to GeoJSON features
-        // 3. Load municipality boundaries to join with prediction data
-        // 4. Display on map with appropriate styling
-        // 5. Update statistics
+        // Fetch the municipality predictions JSON
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const muniData = await response.json();
         
-        if (mapStats) {
-            const escapedDate = escapeHtml(date);
-            const escapedBaseUrl = escapeHtml(config.baseUrl);
+        // If we have Mapbox GL JS available and mapbox token, use Mapbox GL
+        if (typeof mapboxgl !== 'undefined' && config.mapboxAccessToken) {
+            // Remove existing Leaflet map if present
+            if (mapManager.map) {
+                mapManager.map.remove();
+                mapManager.map = null;
+            }
             
-            mapStats.innerHTML = `
-                <p><strong>Region:</strong> Spain</p>
-                <p><strong>Date:</strong> ${escapedDate}</p>
-                <p><strong>Data Source:</strong> MosquitoAlertES</p>
-                <p class="info-message">Full data integration coming soon. See <a href="${escapedBaseUrl}" target="_blank" rel="noopener noreferrer">MosquitoAlertES repository</a> for data details.</p>
-            `;
+            // Create Mapbox GL map
+            mapboxgl.accessToken = config.mapboxAccessToken;
+            
+            const mapContainer = document.getElementById('map');
+            mapContainer.innerHTML = ''; // Clear container
+            
+            const mbMap = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/johnrbpalmer/cklcc4q673pe517k4n5co81sn',
+                center: [region.center[1], region.center[0]], // [lng, lat] format for Mapbox GL
+                zoom: region.zoom
+            });
+            
+            // Store reference for cleanup
+            mapManager.mbMap = mbMap;
+            
+            mbMap.on('load', () => {
+                // Add municipality boundary sources
+                mbMap.addSource('municipalities-low-res', {
+                    type: 'vector',
+                    url: config.municipalityBoundariesLowRes,
+                    maxzoom: 8,
+                    minzoom: 0
+                });
+                
+                mbMap.addSource('municipalities-high-res', {
+                    type: 'vector',
+                    url: config.municipalityBoundariesHighRes,
+                    maxzoom: 15,
+                    minzoom: 8
+                });
+                
+                // Create color scale
+                const scale = chroma.scale("Spectral").domain([1, 0]);
+                
+                // Create match expression for coloring municipalities
+                const matchExpression = ['match', ['get', 'NATCODE']];
+                
+                for (const row of muniData) {
+                    const value = row['ma_prob_mean'];
+                    if (value !== null && value !== undefined) {
+                        // Scale value with max
+                        const scaledValue = Math.min(value, config.maxVRI) / config.maxVRI;
+                        const color = scale(scaledValue).hex();
+                        matchExpression.push(row['NATCODE'].toString(), color);
+                    }
+                }
+                
+                // Default color for municipalities without data
+                matchExpression.push('rgba(0, 0, 0, 0)');
+                
+                // Add high-res layer
+                mbMap.addLayer({
+                    'id': 'muni-high-res',
+                    'type': 'fill',
+                    'source': 'municipalities-high-res',
+                    'source-layer': config.municipalitySourceLayerHighRes,
+                    'maxzoom': 22,
+                    'minzoom': 8,
+                    'paint': {
+                        'fill-color': matchExpression
+                    }
+                }, 'admin-1-boundary-bg');
+                
+                // Add low-res layer
+                mbMap.addLayer({
+                    'id': 'muni-low-res',
+                    'type': 'fill',
+                    'source': 'municipalities-low-res',
+                    'source-layer': config.municipalitySourceLayerLowRes,
+                    'maxzoom': 8,
+                    'minzoom': 0,
+                    'paint': {
+                        'fill-color': matchExpression
+                    }
+                }, 'admin-1-boundary-bg');
+                
+                // Update stats
+                if (mapStats) {
+                    const avgRisk = muniData.reduce((sum, item) => 
+                        sum + (parseFloat(item.ma_prob_mean) || 0), 0) / muniData.length;
+                    
+                    mapStats.innerHTML = `
+                        <p><strong>Region:</strong> Spain</p>
+                        <p><strong>Date:</strong> ${escapeHtml(date)}</p>
+                        <p><strong>Data Source:</strong> MosquitoAlertES</p>
+                        <p><strong>Municipalities:</strong> ${muniData.length}</p>
+                        <p><strong>Avg VRI:</strong> ${avgRisk.toFixed(3)}</p>
+                    `;
+                }
+            });
+        } else {
+            // Fallback message if Mapbox not available
+            if (mapStats) {
+                mapStats.innerHTML = `
+                    <p><strong>Region:</strong> Spain</p>
+                    <p><strong>Date:</strong> ${escapeHtml(date)}</p>
+                    <p><strong>Municipalities:</strong> ${muniData.length}</p>
+                    <p class="info-message">Loaded data from MosquitoAlertES</p>
+                `;
+            }
         }
         
     } catch (error) {
         console.error('Error loading MosquitoAlertES data:', error);
         const mapStats = document.getElementById('map-stats');
         if (mapStats) {
-            mapStats.innerHTML = '<p class="error-message">Error loading MosquitoAlertES data.</p>';
+            mapStats.innerHTML = '<p class="error-message">Error loading MosquitoAlertES data. The data for this date may not be available yet.</p>';
+        }
+    }
+}
+
+/**
+ * Load MosquitoAlert Barcelona GeoTIFF data for a specific date
+ * @param {string} date - Date in YYYY-MM-DD format
+ */
+async function loadBarcelonaMosquitoAlertData(date) {
+    const region = CONFIG.regions['barcelona'];
+    if (!region || !region.dataSources.mosquitoAlertBCN) {
+        console.error('MosquitoAlertBCN configuration not found for Barcelona');
+        return;
+    }
+    
+    const config = region.dataSources.mosquitoAlertBCN;
+    const filename = config.filePattern.replace('{date}', date);
+    const url = config.baseUrl + filename;
+    
+    try {
+        const mapStats = document.getElementById('map-stats');
+        if (mapStats) {
+            mapStats.innerHTML = '<p>Loading data for ' + escapeHtml(date) + '...</p>';
+        }
+        
+        // Remove existing Mapbox map if present
+        if (mapManager.mbMap) {
+            mapManager.mbMap.remove();
+            mapManager.mbMap = null;
+        }
+        
+        // Initialize Leaflet map if not present
+        if (!mapManager.map) {
+            const mapContainer = document.getElementById('map');
+            mapContainer.innerHTML = ''; // Clear container
+            mapManager.map = L.map('map').setView(region.center, region.zoom);
+            
+            // Add Mapbox tile layer
+            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                maxZoom: 20,
+                id: config.mapboxStyleId,
+                tileSize: 512,
+                zoomOffset: -1,
+                accessToken: config.mapboxAccessToken
+            }).addTo(mapManager.map);
+        } else {
+            // Clear existing GeoRaster layers
+            if (mapManager.layers.geotiff) {
+                mapManager.map.removeLayer(mapManager.layers.geotiff);
+                mapManager.layers.geotiff = null;
+            }
+        }
+        
+        // Fetch and parse GeoTIFF
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        
+        // Parse GeoTIFF using georaster library
+        if (typeof parseGeoraster === 'undefined') {
+            throw new Error('parseGeoraster library not available');
+        }
+        
+        const georaster = await parseGeoraster(arrayBuffer);
+        
+        // Create color scale
+        const scale = chroma.scale("Spectral").domain([1, 0]);
+        
+        // Add GeoRaster layer
+        if (typeof GeoRasterLayer === 'undefined') {
+            throw new Error('GeoRasterLayer library not available');
+        }
+        
+        mapManager.layers.geotiff = new GeoRasterLayer({
+            georaster: georaster,
+            opacity: 1,
+            pixelValuesToColorFn: function(pixelValues) {
+                const pixelValue = pixelValues[0]; // single band
+                
+                // Return null for negative or missing values
+                if (pixelValue < 0 || pixelValue === null || pixelValue === undefined) {
+                    return null;
+                }
+                
+                // Scale value with max VRI
+                const scaledValue = Math.min(pixelValue, config.maxVRI) / config.maxVRI;
+                const color = scale(scaledValue).hex();
+                
+                return color;
+            },
+            resolution: 256
+        });
+        
+        mapManager.layers.geotiff.addTo(mapManager.map);
+        
+        // Update stats
+        if (mapStats) {
+            mapStats.innerHTML = `
+                <p><strong>Region:</strong> Barcelona</p>
+                <p><strong>Date:</strong> ${escapeHtml(date)}</p>
+                <p><strong>Data Source:</strong> MosquitoAlert BCN</p>
+                <p><strong>Type:</strong> GeoTIFF Raster</p>
+                <p><strong>Max VRI:</strong> ${config.maxVRI}</p>
+            `;
+        }
+        
+    } catch (error) {
+        console.error('Error loading Barcelona GeoTIFF data:', error);
+        const mapStats = document.getElementById('map-stats');
+        if (mapStats) {
+            mapStats.innerHTML = '<p class="error-message">Error loading Barcelona data. The data for this date may not be available yet.</p>';
         }
     }
 }
