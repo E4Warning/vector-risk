@@ -7,6 +7,30 @@ class Visualization {
     }
 
     /**
+     * Load time series data from URL or fallback to CSV
+     * @param {Object} region - Region configuration object
+     * @returns {Promise<Array>} Chart data
+     */
+    async loadTimeSeriesData(region) {
+        if (region.dataSources.timeseries) {
+            try {
+                const response = await fetch(region.dataSources.timeseries);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error loading time series data:', error);
+                // Fallback to CSV if JSON fails
+                return await dataLoader.loadCSV(region.dataSources.csv);
+            }
+        } else {
+            // Use CSV data if no timeseries URL configured
+            return await dataLoader.loadCSV(region.dataSources.csv);
+        }
+    }
+
+    /**
      * Create or update a risk chart
      * @param {string} regionKey - Region key
      */
@@ -17,39 +41,8 @@ class Visualization {
         const region = CONFIG.regions[regionKey];
         if (!region) return;
 
-        let chartData;
-        
-        // Load data based on region
-        if (regionKey === 'spain' && region.dataSources.timeseries) {
-            // Load Spain time series data
-            try {
-                const response = await fetch(region.dataSources.timeseries);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                chartData = await response.json();
-            } catch (error) {
-                console.error('Error loading Spain time series data:', error);
-                // Fallback to CSV if JSON fails
-                chartData = await dataLoader.loadCSV(region.dataSources.csv);
-            }
-        } else if (regionKey === 'barcelona' && region.dataSources.timeseries) {
-            // Load Barcelona time series data
-            try {
-                const response = await fetch(region.dataSources.timeseries);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                chartData = await response.json();
-            } catch (error) {
-                console.error('Error loading Barcelona time series data:', error);
-                // Fallback to CSV if JSON fails
-                chartData = await dataLoader.loadCSV(region.dataSources.csv);
-            }
-        } else {
-            // For other regions, use CSV data
-            chartData = await dataLoader.loadCSV(region.dataSources.csv);
-        }
+        // Load time series data
+        const chartData = await this.loadTimeSeriesData(region);
 
         // Prepare chart data
         const labels = [];
@@ -121,7 +114,7 @@ class Visualization {
                                     label += ': ';
                                 }
                                 if (context.parsed.y !== null) {
-                                    label += context.parsed.y.toFixed(3);
+                                    label += context.parsed.y.toFixed(2);
                                 }
                                 return label;
                             }
