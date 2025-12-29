@@ -56,7 +56,7 @@ class Visualization {
                 labels.push(dateLabel);
                 
                 // For risk, try various field names
-                const riskValue = parseFloat(item.risk_level || item.vri || item.risk || item.value || 0);
+                const riskValue = parseFloat(item.risk_level || item.vri || item.risk || item.value || item.ma_prob_mean || item.ma_prob_max || 0);
                 riskData.push(riskValue);
             });
         }
