@@ -50,10 +50,12 @@ class MapManager {
             return;
         }
         
-        // Remove old base layer
-        if (this.baseLayer) {
-            this.map.removeLayer(this.baseLayer);
-        }
+        // Remove all existing tile layers (base maps) to ensure clean slate
+        this.map.eachLayer((layer) => {
+            if (layer instanceof L.TileLayer) {
+                this.map.removeLayer(layer);
+            }
+        });
         
         // Add new base layer
         const basemap = CONFIG.basemaps[basemapKey];
@@ -62,7 +64,7 @@ class MapManager {
             maxZoom: basemap.maxZoom
         }).addTo(this.map);
         
-        // Move base layer to back
+        // Move base layer to back to ensure it's behind data layers
         this.baseLayer.bringToBack();
         
         this.currentBasemap = basemapKey;
