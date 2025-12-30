@@ -109,8 +109,17 @@
                 <div class="map-container">
                     <div class="map-sidebar">
                         <div class="sidebar-section" id="date-selector-section" style="display: none;">
-                            <h3>Select Date</h3>
-                            <input type="date" id="data-date-picker" class="date-picker">
+                            <h3>Select Date Range</h3>
+                            <div class="date-range">
+                                <label class="date-range-label">
+                                    Start
+                                    <input type="date" id="data-start-date" class="date-picker">
+                                </label>
+                                <label class="date-range-label">
+                                    End
+                                    <input type="date" id="data-end-date" class="date-picker">
+                                </label>
+                            </div>
                             <p class="info-text">Data from <a href="https://github.com/Mosquito-Alert/MosquitoAlertES" target="_blank" rel="noopener noreferrer">MosquitoAlertES</a></p>
                         </div>
                         
@@ -153,8 +162,8 @@
                                     <input type="checkbox" id="risk-layer" checked>
                                     Risk Level
                                 </label>
-                                <label class="disabled">
-                                    <input type="checkbox" id="observations-layer" disabled>
+                                <label>
+                                    <input type="checkbox" id="observations-layer" checked>
                                     Observations
                                 </label>
                                 <label class="disabled">

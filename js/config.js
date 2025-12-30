@@ -112,6 +112,16 @@ const CONFIG = {
         'high': '#fc8d59',
         'very_high': '#d73027'
     },
+
+    // Mosquito observation source (public nightly data used by the official Mosquito Alert map)
+    observationsSource: {
+        // Data repository used by https://map.mosquitoalert.com (nightly snapshots)
+        baseUrl: 'https://raw.githubusercontent.com/mosquitoalert/data/master/',
+        // Fallback file used when a date-specific file is not available
+        fallbackFile: 'observations.geojson',
+        speciesPropertyCandidates: ['species', 'taxon', 'taxa', 'taxon_name'],
+        datePropertyCandidates: ['event_date', 'observed_at', 'created_at', 'timestamp']
+    },
     
     // Tile layer options
     tileLayer: {
