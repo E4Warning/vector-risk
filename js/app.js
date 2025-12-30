@@ -147,7 +147,7 @@ function setupLayerControls() {
     const modelSelector = document.getElementById('model-selector');
     if (modelSelector) {
         modelSelector.addEventListener('change', async function() {
-            if (mapManager.currentRegion === 'spain') {
+            if (mapManager && mapManager.currentRegion === 'spain') {
                 const datePicker = document.getElementById('data-date-picker');
                 const dateToLoad = datePicker && datePicker.value ? datePicker.value : new Date().toISOString().split('T')[0];
                 await loadSpainMosquitoAlertData(dateToLoad, this.value);
