@@ -25,6 +25,22 @@ class Visualization {
     }
 
     /**
+     * Shared line/point styling for charts
+     * @returns {Object} elements config
+     */
+    getLineElementsConfig() {
+        return {
+            line: {
+                borderWidth: 1.5
+            },
+            point: {
+                radius: 0,
+                hoverRadius: 0
+            }
+        };
+    }
+
+    /**
      * Load time series data from URL or fallback to CSV
      * @param {Object} region - Region configuration object
      * @returns {Promise<Array>} Chart data
@@ -146,15 +162,7 @@ class Visualization {
                     mode: 'index',
                     intersect: false
                 },
-                elements: {
-                    line: {
-                        borderWidth: 1.5
-                    },
-                    point: {
-                        radius: 0,
-                        hoverRadius: 0
-                    }
-                },
+                elements: this.getLineElementsConfig(),
                 plugins: {
                     title: {
                         display: true,
@@ -169,7 +177,9 @@ class Visualization {
                             boxHeight: 12,
                             color: (ctx) => {
                                 const meta = ctx.chart.getDatasetMeta(ctx.datasetIndex);
-                                return meta && meta.hidden ? this.INACTIVE_LABEL_COLOR : this.ACTIVE_LABEL_COLOR;
+                                const activeColor = this.ACTIVE_LABEL_COLOR;
+                                const inactiveColor = this.INACTIVE_LABEL_COLOR;
+                                return meta && meta.hidden ? inactiveColor : activeColor;
                             }
                         }
                     },
@@ -308,15 +318,7 @@ class Visualization {
                     mode: 'index',
                     intersect: false
                 },
-                elements: {
-                    line: {
-                        borderWidth: 1.5
-                    },
-                    point: {
-                        radius: 0,
-                        hoverRadius: 0
-                    }
-                },
+                elements: this.getLineElementsConfig(),
                 plugins: {
                     title: {
                         display: true,
@@ -481,15 +483,7 @@ class Visualization {
                     mode: 'index',
                     intersect: false
                 },
-                elements: {
-                    line: {
-                        borderWidth: 1.5
-                    },
-                    point: {
-                        radius: 0,
-                        hoverRadius: 0
-                    }
-                },
+                elements: this.getLineElementsConfig(),
                 plugins: {
                     title: {
                         display: true,
