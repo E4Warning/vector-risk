@@ -580,7 +580,7 @@ class Visualization {
             checkbox.id = `series-checkbox-${index}`;
             checkbox.dataset.index = datasetIndex;
             
-            const meta = this.chart.getDatasetMeta(index);
+            const meta = this.chart.getDatasetMeta(datasetIndex);
             checkbox.checked = !meta.hidden;
             
             // Color swatch for legend
