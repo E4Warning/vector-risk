@@ -139,6 +139,8 @@ class Visualization {
 
         // Create new chart
         const ctx = canvas.getContext('2d');
+        const activeLabelColor = this.ACTIVE_LABEL_COLOR;
+        const inactiveLabelColor = this.INACTIVE_LABEL_COLOR;
         
         this.chart = new Chart(ctx, {
             type: 'line',
@@ -175,11 +177,9 @@ class Visualization {
                         labels: {
                             boxWidth: 12,
                             boxHeight: 12,
-                            color: (ctx) => {
+                            color: function(ctx) {
                                 const meta = ctx.chart.getDatasetMeta(ctx.datasetIndex);
-                                const activeColor = this.ACTIVE_LABEL_COLOR;
-                                const inactiveColor = this.INACTIVE_LABEL_COLOR;
-                                return meta && meta.hidden ? inactiveColor : activeColor;
+                                return meta && meta.hidden ? inactiveLabelColor : activeLabelColor;
                             }
                         }
                     },
