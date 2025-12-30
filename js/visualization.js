@@ -570,13 +570,15 @@ class Visualization {
         datasets.forEach((dataset, index) => {
             if (index === 0) return;
             
+            const datasetIndex = index;
+            
             const label = document.createElement('label');
             label.className = 'legend-entry';
             
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.id = `series-checkbox-${index}`;
-            checkbox.dataset.index = index;
+            checkbox.dataset.index = datasetIndex;
             
             const meta = this.chart.getDatasetMeta(index);
             checkbox.checked = !meta.hidden;
@@ -585,11 +587,13 @@ class Visualization {
             const swatch = document.createElement('span');
             swatch.className = 'legend-color-swatch';
             swatch.style.backgroundColor = dataset.borderColor || dataset.backgroundColor || '#888';
+            swatch.setAttribute('role', 'img');
+            swatch.setAttribute('aria-label', `${dataset.label || 'Series'} color`);
             
             // Add event listener
             checkbox.addEventListener('change', function() {
                 if (self.chart) {
-                    const meta = self.chart.getDatasetMeta(index);
+                    const meta = self.chart.getDatasetMeta(datasetIndex);
                     meta.hidden = !this.checked;
                     self.chart.update();
                 }
