@@ -18,15 +18,18 @@ const CONFIG = {
                     filePattern: 'muni_preds_{date}.json',
                     description: 'Data from MosquitoAlertES - Citizen science mosquito surveillance',
                     municipalityBoundariesLowRes: 'mapbox://johnrbpalmer.4bfv6pbn',
-                    municipalityBoundariesHighRes: 'mapbox://johnrbpalmer.48qdct4s',
-                    municipalitySourceLayerLowRes: 'spain_municipality_boundaries-7m7u82',
-                    municipalitySourceLayerHighRes: 'spain_municipality_boundaries-dzvpt0',
-                    mapboxAccessToken: 'pk.eyJ1Ijoiam9obnJicGFsbWVyIiwiYSI6ImFRTXhoaHcifQ.UwIptK0Is5dJdN8q-1djww',
-                    maxVRI: 0.3
-                }
-            },
-            comingSoon: false
-        },
+                     municipalityBoundariesHighRes: 'mapbox://johnrbpalmer.48qdct4s',
+                     municipalitySourceLayerLowRes: 'spain_municipality_boundaries-7m7u82',
+                     municipalitySourceLayerHighRes: 'spain_municipality_boundaries-dzvpt0',
+                     mapboxAccessToken: 'pk.eyJ1Ijoiam9obnJicGFsbWVyIiwiYSI6ImFRTXhoaHcifQ.UwIptK0Is5dJdN8q-1djww',
+                     maxVRI: 0.3,
+                     // Default file pattern for 1km grid GeoTIFFs (can be adjusted if the filename differs)
+                     gridFilePattern: 'grid_preds_{date}.tif',
+                     gridMaxVRI: 0.3
+                 }
+             },
+             comingSoon: false
+         },
         brazil: {
             name: 'Brazil',
             type: 'country',
