@@ -11,6 +11,7 @@
     --accent-color: #e74c3c;
     --bg-color: #f8f9fa;
     --text-color: #333;
+    --muted-text-color: #777;
     --border-color: #ddd;
     --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
@@ -506,7 +507,7 @@ main {
 
 .legend-entry.series-hidden {
     opacity: 0.6;
-    color: #777;
+    color: var(--muted-text-color);
     text-decoration: none;
 }
 
