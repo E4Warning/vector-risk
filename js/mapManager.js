@@ -4,7 +4,7 @@ class MapManager {
         this.map = null;
         this.mbMap = null; // Mapbox GL map instance
         this.baseLayer = null; // Store reference to base tile layer
-        this.currentBasemap = 'osm'; // Track current basemap
+        this.currentBasemap = 'satellite'; // Track current basemap
         this.currentOpacity = 0.7; // Default opacity
         this.layers = {
             risk: null,
@@ -30,6 +30,14 @@ class MapManager {
             attribution: basemap.attribution,
             maxZoom: basemap.maxZoom
         }).addTo(this.map);
+
+        // Reset tracked layers since the map has been recreated
+        this.layers = {
+            risk: null,
+            observations: null,  // Placeholder for future observations layer
+            range: null,         // Placeholder for future range layer
+            geotiff: null
+        };
 
         return this.map;
     }
