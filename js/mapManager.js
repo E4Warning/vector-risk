@@ -51,6 +51,10 @@ class MapManager {
         }
         
         // Remove all existing tile layers (base maps) to ensure clean slate
+        // Note: This removes ALL L.TileLayer instances, which in the current
+        // codebase are only used for basemaps. If data tile layers are added
+        // in the future, they should use a different layer type or be tracked
+        // separately to avoid being removed here.
         this.map.eachLayer((layer) => {
             if (layer instanceof L.TileLayer) {
                 this.map.removeLayer(layer);
