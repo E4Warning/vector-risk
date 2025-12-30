@@ -484,6 +484,7 @@ class Visualization {
     setupSeriesSelector(regionType, data) {
         const seriesSelectorSection = document.getElementById('series-selector-section');
         const citywideLabel = document.getElementById('series-citywide-label');
+        const citywideCheckbox = document.getElementById('series-citywide');
         const additionalSeriesList = document.getElementById('additional-series-list');
         
         if (!seriesSelectorSection || !additionalSeriesList) {
@@ -496,6 +497,22 @@ class Visualization {
         // Update citywide label
         if (citywideLabel) {
             citywideLabel.textContent = regionType === 'barcelona' ? 'Barcelona Citywide' : 'Spain Countrywide';
+        }
+        
+        // Setup citywide checkbox listener
+        const self = this;
+        if (citywideCheckbox) {
+            // Remove existing listeners by cloning
+            const newCitywideCheckbox = citywideCheckbox.cloneNode(true);
+            citywideCheckbox.parentNode.replaceChild(newCitywideCheckbox, citywideCheckbox);
+            
+            newCitywideCheckbox.addEventListener('change', function() {
+                if (self.chart) {
+                    const meta = self.chart.getDatasetMeta(0); // Index 0 is citywide
+                    meta.hidden = !this.checked;
+                    self.chart.update();
+                }
+            });
         }
         
         // Clear existing series
@@ -512,7 +529,6 @@ class Visualization {
         
         // Create checkboxes for each series
         let index = 1; // 0 is citywide
-        const self = this; // Store reference to this for use in event listener
         Array.from(seriesNames).sort().forEach(name => {
             const label = document.createElement('label');
             const checkbox = document.createElement('input');
