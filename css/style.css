@@ -313,6 +313,15 @@ main {
     margin-right: 0.5rem;
 }
 
+.layer-controls label.disabled {
+    color: var(--muted-text-color);
+    cursor: not-allowed;
+}
+
+.layer-controls input:disabled {
+    cursor: not-allowed;
+}
+
 .date-picker {
     width: 100%;
     padding: 0.5rem;
