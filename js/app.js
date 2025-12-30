@@ -99,6 +99,27 @@ function setupLayerControls() {
             mapManager.toggleLayer('range', this.checked);
         });
     }
+    
+    // Transparency slider
+    const transparencySlider = document.getElementById('transparency-slider');
+    const transparencyValue = document.getElementById('transparency-value');
+    
+    if (transparencySlider && transparencyValue) {
+        transparencySlider.addEventListener('input', function() {
+            const opacity = this.value / 100;
+            transparencyValue.textContent = this.value;
+            mapManager.setLayerOpacity(opacity);
+        });
+    }
+    
+    // Basemap selector
+    const basemapSelector = document.getElementById('basemap-selector');
+    
+    if (basemapSelector) {
+        basemapSelector.addEventListener('change', function() {
+            mapManager.switchBasemap(this.value);
+        });
+    }
 }
 
 /**
@@ -395,7 +416,8 @@ async function loadSpainMosquitoAlertData(date) {
                     'maxzoom': 22,
                     'minzoom': 8,
                     'paint': {
-                        'fill-color': matchExpression
+                        'fill-color': matchExpression,
+                        'fill-opacity': mapManager.currentOpacity
                     }
                 }, 'admin-1-boundary-bg');
                 
@@ -408,7 +430,8 @@ async function loadSpainMosquitoAlertData(date) {
                     'maxzoom': 8,
                     'minzoom': 0,
                     'paint': {
-                        'fill-color': matchExpression
+                        'fill-color': matchExpression,
+                        'fill-opacity': mapManager.currentOpacity
                     }
                 }, 'admin-1-boundary-bg');
                 
@@ -521,7 +544,7 @@ async function loadBarcelonaMosquitoAlertData(date) {
         
         mapManager.layers.geotiff = new GeoRasterLayer({
             georaster: georaster,
-            opacity: 1,
+            opacity: mapManager.currentOpacity,
             pixelValuesToColorFn: function(pixelValues) {
                 const pixelValue = pixelValues[0]; // single band
                 
