@@ -10,7 +10,7 @@ class Visualization {
         this.legendCloseListener = null;
         this.DEFAULT_SERIES_COLOR = '#888';
         this.ACTIVE_LABEL_COLOR = '#333';
-        this.INACTIVE_LABEL_COLOR = '#888';
+        this.INACTIVE_LABEL_COLOR = this.DEFAULT_SERIES_COLOR;
     }
 
     /**
