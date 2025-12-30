@@ -6,6 +6,8 @@ class Visualization {
         this.CHART_OPACITY = 0.25; // 40 in hex = 0.25 alpha
         // Store event listeners for cleanup
         this.citywideCheckboxListener = null;
+        this.legendToggleListener = null;
+        this.legendCloseListener = null;
     }
 
     /**
@@ -518,6 +520,7 @@ class Visualization {
         const citywideCheckbox = document.getElementById('series-citywide');
         const additionalSeriesList = document.getElementById('additional-series-list');
         
+        // Guard: ensure popup container and chart are ready
         if (!seriesSelectorSection || !additionalSeriesList || !this.chart) {
             return;
         }
@@ -591,7 +594,7 @@ class Visualization {
             // Add event listener
             checkbox.addEventListener('change', function() {
                 if (self.chart) {
-                    const datasetIndex = Number(this.dataset.index);
+                    const datasetIndex = parseInt(this.dataset.index, 10);
                     const meta = self.chart.getDatasetMeta(datasetIndex);
                     meta.hidden = !this.checked;
                     self.chart.update();
@@ -621,12 +624,6 @@ class Visualization {
         
         // Store reference to this for event listener
         const self = this;
-        
-        // Remove existing listener if any
-        const newToggleBtn = toggleBtn.cloneNode(true);
-        toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
-        
-        // Get the new button and text elements after replacement
         const btn = document.getElementById('toggle-legend-btn');
         const btnText = document.getElementById('legend-btn-text');
         const popup = document.getElementById('legend-popup');
@@ -648,26 +645,28 @@ class Visualization {
             updateButtonText(true);
         };
         
-        // Remove existing close listeners by cloning
-        if (closeBtn) {
-            const newCloseBtn = closeBtn.cloneNode(true);
-            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+        // Remove existing listeners if present
+        if (this.legendToggleListener) {
+            btn.removeEventListener('click', this.legendToggleListener);
+        }
+        if (this.legendCloseListener && closeBtn) {
+            closeBtn.removeEventListener('click', this.legendCloseListener);
         }
         
-        const refreshedCloseBtn = document.getElementById('legend-close-btn');
-        
         // Add click event listener
-        btn.addEventListener('click', function() {
+        this.legendToggleListener = function() {
             const isVisible = popup.style.display === 'block';
             if (isVisible) {
                 hidePopup();
             } else {
                 showPopup();
             }
-        });
+        };
+        btn.addEventListener('click', this.legendToggleListener);
         
-        if (refreshedCloseBtn) {
-            refreshedCloseBtn.addEventListener('click', hidePopup);
+        if (closeBtn) {
+            this.legendCloseListener = hidePopup;
+            closeBtn.addEventListener('click', this.legendCloseListener);
         }
         
         // Ensure initial state
