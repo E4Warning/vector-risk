@@ -39,7 +39,14 @@ class MapManager {
      * @param {string} basemapKey - Key for the basemap in CONFIG.basemaps
      */
     switchBasemap(basemapKey) {
-        if (!this.map || !CONFIG.basemaps[basemapKey]) {
+        if (!CONFIG.basemaps[basemapKey]) {
+            return;
+        }
+        
+        // Note: Basemap switching is only supported for Leaflet maps.
+        // Mapbox GL maps use fixed styles with embedded data layers.
+        if (!this.map) {
+            console.log('Basemap switching is only supported for Leaflet-based maps');
             return;
         }
         

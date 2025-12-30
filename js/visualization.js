@@ -4,6 +4,8 @@ class Visualization {
         this.chart = null;
         // Configuration constants
         this.CHART_OPACITY = 0.25; // 40 in hex = 0.25 alpha
+        // Store event listeners for cleanup
+        this.citywideCheckboxListener = null;
     }
 
     /**
@@ -70,6 +72,12 @@ class Visualization {
     async createSimpleChart(regionKey, region) {
         const canvas = document.getElementById('riskChart');
         if (!canvas) return;
+
+        // Hide series selector for simple charts
+        const seriesSelectorSection = document.getElementById('series-selector-section');
+        if (seriesSelectorSection) {
+            seriesSelectorSection.style.display = 'none';
+        }
 
         // Load time series data
         const chartData = await this.loadTimeSeriesData(region);
@@ -179,6 +187,9 @@ class Visualization {
             const response = await fetch(region.dataSources.districtTimeseries);
             if (response.ok) {
                 districtData = await response.json();
+                console.log('Barcelona district data loaded:', districtData.length, 'items');
+            } else {
+                console.warn('Failed to load Barcelona district data:', response.status);
             }
         } catch (error) {
             console.error('Error loading district data:', error);
@@ -336,6 +347,9 @@ class Visualization {
             const response = await fetch(region.dataSources.ccaaTimeseries);
             if (response.ok) {
                 ccaaData = await response.json();
+                console.log('Spain CCAA data loaded:', ccaaData.length, 'items');
+            } else {
+                console.warn('Failed to load Spain CCAA data:', response.status);
             }
         } catch (error) {
             console.error('Error loading CCAA data:', error);
@@ -484,6 +498,7 @@ class Visualization {
     setupSeriesSelector(regionType, data) {
         const seriesSelectorSection = document.getElementById('series-selector-section');
         const citywideLabel = document.getElementById('series-citywide-label');
+        const citywideCheckbox = document.getElementById('series-citywide');
         const additionalSeriesList = document.getElementById('additional-series-list');
         
         if (!seriesSelectorSection || !additionalSeriesList) {
@@ -498,6 +513,28 @@ class Visualization {
             citywideLabel.textContent = regionType === 'barcelona' ? 'Barcelona Citywide' : 'Spain Countrywide';
         }
         
+        // Store reference to this for use in all event listeners
+        const self = this;
+        
+        // Setup citywide checkbox listener
+        if (citywideCheckbox) {
+            // Remove existing listener if it exists
+            if (this.citywideCheckboxListener) {
+                citywideCheckbox.removeEventListener('change', this.citywideCheckboxListener);
+            }
+            
+            // Create and store new listener
+            this.citywideCheckboxListener = function() {
+                if (self.chart) {
+                    const meta = self.chart.getDatasetMeta(0); // Index 0 is citywide
+                    meta.hidden = !this.checked;
+                    self.chart.update();
+                }
+            };
+            
+            citywideCheckbox.addEventListener('change', this.citywideCheckboxListener);
+        }
+        
         // Clear existing series
         additionalSeriesList.innerHTML = '';
         
@@ -510,9 +547,10 @@ class Visualization {
             }
         });
         
+        console.log(`Setting up series selector for ${regionType}:`, seriesNames.size, 'series found');
+        
         // Create checkboxes for each series
         let index = 1; // 0 is citywide
-        const self = this; // Store reference to this for use in event listener
         Array.from(seriesNames).sort().forEach(name => {
             const label = document.createElement('label');
             const checkbox = document.createElement('input');
