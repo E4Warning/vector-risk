@@ -712,12 +712,18 @@ async function loadSpainMosquitoAlertGridData(date) {
         throw new Error('GeoRasterLayer library not available');
     }
 
+    const noDataValue = georaster?.noDataValue;
+
     mapManager.layers.geotiff = new GeoRasterLayer({
         georaster: georaster,
         opacity: mapManager.currentOpacity,
         pixelValuesToColorFn: function(pixelValues) {
             const pixelValue = pixelValues[0];
-            if (pixelValue == null || pixelValue < 0) {
+            if (
+                !Number.isFinite(pixelValue) ||
+                pixelValue <= 0 ||
+                (noDataValue !== undefined && pixelValue === noDataValue)
+            ) {
                 return null;
             }
             const scaledValue = Math.min(pixelValue, maxVRI) / maxVRI;
