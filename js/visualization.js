@@ -9,6 +9,8 @@ class Visualization {
         this.legendToggleListener = null;
         this.legendCloseListener = null;
         this.DEFAULT_SERIES_COLOR = '#888';
+        this.ACTIVE_LABEL_COLOR = '#333';
+        this.INACTIVE_LABEL_COLOR = this.DEFAULT_SERIES_COLOR;
     }
 
     /**
@@ -20,6 +22,22 @@ class Visualization {
     addAlpha(hexColor, alpha) {
         const alphaHex = Math.round(alpha * 255).toString(16).padStart(2, '0');
         return hexColor + alphaHex;
+    }
+
+    /**
+     * Shared line/point styling for charts
+     * @returns {Object} elements config
+     */
+    getLineElementsConfig() {
+        return {
+            line: {
+                borderWidth: 1.5
+            },
+            point: {
+                radius: 0,
+                hoverRadius: 0
+            }
+        };
     }
 
     /**
@@ -121,6 +139,8 @@ class Visualization {
 
         // Create new chart
         const ctx = canvas.getContext('2d');
+        const activeLabelColor = this.ACTIVE_LABEL_COLOR;
+        const inactiveLabelColor = this.INACTIVE_LABEL_COLOR;
         
         this.chart = new Chart(ctx, {
             type: 'line',
@@ -144,6 +164,7 @@ class Visualization {
                     mode: 'index',
                     intersect: false
                 },
+                elements: this.getLineElementsConfig(),
                 plugins: {
                     title: {
                         display: true,
@@ -151,7 +172,16 @@ class Visualization {
                     },
                     legend: {
                         display: true,
-                        position: 'top'
+                        position: 'top',
+                        align: 'start',
+                        labels: {
+                            boxWidth: 12,
+                            boxHeight: 12,
+                            color: function(ctx) {
+                                const meta = ctx.chart.getDatasetMeta(ctx.datasetIndex);
+                                return meta && meta.hidden ? inactiveLabelColor : activeLabelColor;
+                            }
+                        }
                     },
                     tooltip: {
                         callbacks: {
@@ -261,7 +291,7 @@ class Visualization {
                 borderColor: color,
                 backgroundColor: this.addAlpha(color, this.CHART_OPACITY),
                 tension: 0.4,
-                hidden: true // Start hidden
+                hidden: false // Start visible
             });
             
             colorIndex++;
@@ -288,6 +318,7 @@ class Visualization {
                     mode: 'index',
                     intersect: false
                 },
+                elements: this.getLineElementsConfig(),
                 plugins: {
                     title: {
                         display: true,
@@ -425,7 +456,7 @@ class Visualization {
                 borderColor: color,
                 backgroundColor: this.addAlpha(color, this.CHART_OPACITY),
                 tension: 0.4,
-                hidden: true // Start hidden
+                hidden: false // Start visible
             });
             
             colorIndex++;
@@ -452,6 +483,7 @@ class Visualization {
                     mode: 'index',
                     intersect: false
                 },
+                elements: this.getLineElementsConfig(),
                 plugins: {
                     title: {
                         display: true,
@@ -539,6 +571,7 @@ class Visualization {
         
         // Setup citywide checkbox listener
         if (citywideCheckbox) {
+            const citywideWrapper = citywideCheckbox.closest('label');
             // Remove existing listener if it exists
             if (this.citywideCheckboxListener) {
                 citywideCheckbox.removeEventListener('change', this.citywideCheckboxListener);
@@ -547,6 +580,9 @@ class Visualization {
             // Set initial state based on chart visibility
             const citywideMeta = this.chart.getDatasetMeta(0);
             citywideCheckbox.checked = !citywideMeta.hidden;
+            if (citywideWrapper) {
+                citywideWrapper.classList.toggle('series-hidden', citywideMeta.hidden);
+            }
             
             // Create and store new listener
             this.citywideCheckboxListener = function() {
@@ -554,6 +590,9 @@ class Visualization {
                     const meta = self.chart.getDatasetMeta(0); // Index 0 is citywide
                     meta.hidden = !this.checked;
                     self.chart.update();
+                    if (citywideWrapper) {
+                        citywideWrapper.classList.toggle('series-hidden', meta.hidden);
+                    }
                 }
             };
             
@@ -585,6 +624,7 @@ class Visualization {
             
             const meta = this.chart.getDatasetMeta(index);
             checkbox.checked = !meta.hidden;
+            label.classList.toggle('series-hidden', meta.hidden);
             
             // Color swatch for legend
             const swatch = document.createElement('span');
@@ -600,6 +640,7 @@ class Visualization {
                     const meta = self.chart.getDatasetMeta(datasetIndex);
                     meta.hidden = !this.checked;
                     self.chart.update();
+                    label.classList.toggle('series-hidden', meta.hidden);
                 }
             };
             
@@ -636,7 +677,7 @@ class Visualization {
         
         const updateButtonText = (visible) => {
             if (btnText) {
-                btnText.textContent = visible ? 'Hide Selector' : 'Select Series';
+                btnText.textContent = visible ? 'Hide Series' : 'Select Series';
             }
         };
         
