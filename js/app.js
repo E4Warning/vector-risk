@@ -147,11 +147,11 @@ function setupLayerControls() {
     const modelSelector = document.getElementById('model-selector');
     if (modelSelector) {
         modelSelector.addEventListener('change', async function() {
-            if (mapManager && mapManager.currentRegion === 'spain') {
-                const datePicker = document.getElementById('data-date-picker');
-                const dateToLoad = datePicker && datePicker.value ? datePicker.value : new Date().toISOString().split('T')[0];
-                await loadSpainMosquitoAlertData(dateToLoad, this.value);
-            }
+            if (!mapManager || !mapManager.currentRegion) return;
+            if (mapManager.currentRegion !== 'spain') return;
+            const datePicker = document.getElementById('data-date-picker');
+            const dateToLoad = datePicker && datePicker.value ? datePicker.value : new Date().toISOString().split('T')[0];
+            await loadSpainMosquitoAlertData(dateToLoad, this.value);
         });
     }
 }
@@ -387,7 +387,6 @@ async function loadSpainMosquitoAlertData(date, modelSelection = 'mosquito-alert
         console.error('MosquitoAlertES configuration not found for Spain');
         return;
     }
-    mapManager.currentRegion = 'spain';
     if (modelSelection === 'mosquito-alert-grid') {
         await loadSpainMosquitoAlertGridData(date);
         return;
@@ -683,7 +682,7 @@ async function loadSpainMosquitoAlertGridData(date) {
         opacity: mapManager.currentOpacity,
         pixelValuesToColorFn: function(pixelValues) {
             const pixelValue = pixelValues[0];
-            if (pixelValue < 0 || pixelValue === null || pixelValue === undefined) {
+            if (pixelValue == null || pixelValue < 0) {
                 return null;
             }
             const scaledValue = Math.min(pixelValue, maxVRI) / maxVRI;
