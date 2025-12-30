@@ -591,7 +591,8 @@ class Visualization {
             // Add event listener
             checkbox.addEventListener('change', function() {
                 if (self.chart) {
-                    const meta = self.chart.getDatasetMeta(index);
+                    const datasetIndex = Number(this.dataset.index);
+                    const meta = self.chart.getDatasetMeta(datasetIndex);
                     meta.hidden = !this.checked;
                     self.chart.update();
                 }
