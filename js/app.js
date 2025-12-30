@@ -205,15 +205,29 @@ async function showRegion(regionKey) {
     const selectedModel = getSelectedModel();
     const modelSelector = document.getElementById('model-selector');
     if (modelSelector) {
+        const gridOption = modelSelector.querySelector('option[value="mosquito-alert-grid"]');
+        const muniOption = modelSelector.querySelector('option[value="mosquito-alert-municipalities"]');
         if (regionKey === 'spain') {
             modelSelector.disabled = false;
-            const gridOption = modelSelector.querySelector('option[value="mosquito-alert-grid"]');
+            modelSelector.value = selectedModel;
             if (gridOption) {
                 gridOption.disabled = false;
+                gridOption.hidden = false;
+                gridOption.textContent = 'Mosquito Alert 1km grid';
+            }
+            if (muniOption) {
+                muniOption.textContent = 'Mosquito Alert Municipalities';
             }
         } else {
             modelSelector.value = 'mosquito-alert-municipalities';
             modelSelector.disabled = true;
+            if (gridOption) {
+                gridOption.disabled = true;
+                gridOption.hidden = true;
+            }
+            if (muniOption) {
+                muniOption.textContent = regionKey === 'barcelona' ? 'Mosquito Alert 20m grid' : 'Mosquito Alert Municipalities';
+            }
         }
     }
     
@@ -387,8 +401,16 @@ async function loadSpainMosquitoAlertData(date, modelSelection = 'mosquito-alert
         console.error('MosquitoAlertES configuration not found for Spain');
         return;
     }
+    const mapStats = document.getElementById('map-stats');
     if (modelSelection === 'mosquito-alert-grid') {
-        await loadSpainMosquitoAlertGridData(date);
+        try {
+            await loadSpainMosquitoAlertGridData(date);
+        } catch (error) {
+            console.error('Error loading MosquitoAlert grid data:', error);
+            if (mapStats) {
+                mapStats.innerHTML = '<p class="error-message">Error loading 1km grid data. The data for this date may not be available yet.</p>';
+            }
+        }
         return;
     }
     
@@ -397,7 +419,6 @@ async function loadSpainMosquitoAlertData(date, modelSelection = 'mosquito-alert
     const url = config.baseUrl + filename;
     
     try {
-        const mapStats = document.getElementById('map-stats');
         if (mapStats) {
             mapStats.innerHTML = '<p>Loading data for ' + escapeHtml(date) + '...</p>';
         }
@@ -536,9 +557,14 @@ async function loadSpainMosquitoAlertData(date, modelSelection = 'mosquito-alert
                     closeOnClick: false
                 });
                 
-                const showFeatureInfo = (e) => {
-                    if (!e.features || !e.features.length) return;
-                    const feature = e.features[0];
+                const showFeatureInfo = (e, layerId) => {
+                    const queried = mbMap.queryRenderedFeatures(e.point, { layers: [layerId] });
+                    const feature = (e.features && e.features[0]) || (queried && queried[0]);
+                    if (!feature) {
+                        popup.remove();
+                        mbMap.getCanvas().style.cursor = '';
+                        return;
+                    }
                     const natcode = feature.properties?.NATCODE?.toString();
                     const info = municipalityLookup.get(natcode);
                     const name = info?.name || feature.properties?.NAMEUNIT || 'Municipality';
@@ -549,14 +575,18 @@ async function loadSpainMosquitoAlertData(date, modelSelection = 'mosquito-alert
                         .setLngLat(e.lngLat)
                         .setHTML(`<strong>${escapeHtml(name)}</strong><br>Predicted value: ${valueText}`)
                         .addTo(mbMap);
+                    mbMap.getCanvas().style.cursor = 'pointer';
                 };
                 
-                const hideFeatureInfo = () => popup.remove();
+                const hideFeatureInfo = () => {
+                    popup.remove();
+                    mbMap.getCanvas().style.cursor = '';
+                };
                 
                 ['muni-high-res', 'muni-low-res'].forEach(layerId => {
-                    mbMap.on('mousemove', layerId, showFeatureInfo);
+                    mbMap.on('mousemove', layerId, (e) => showFeatureInfo(e, layerId));
                     mbMap.on('mouseleave', layerId, hideFeatureInfo);
-                    mbMap.on('click', layerId, showFeatureInfo);
+                    mbMap.on('click', layerId, (e) => showFeatureInfo(e, layerId));
                 });
                 
                 // Update stats
@@ -615,6 +645,11 @@ async function loadSpainMosquitoAlertGridData(date) {
     if (mapManager.mbMap) {
         mapManager.mbMap.remove();
         mapManager.mbMap = null;
+    }
+
+    const mapContainer = document.getElementById('map');
+    if (mapContainer) {
+        mapContainer.innerHTML = '';
     }
 
     mapManager.initMap();
@@ -790,6 +825,7 @@ async function loadBarcelonaMosquitoAlertData(date) {
             mapStats.innerHTML = `
                 <p><strong>Region:</strong> Barcelona</p>
                 <p><strong>Date:</strong> ${escapeHtml(date)}</p>
+                <p><strong>Model:</strong> Mosquito Alert 20m grid</p>
                 <p><strong>Data Source:</strong> MosquitoAlert BCN</p>
                 <p><strong>Type:</strong> GeoTIFF Raster</p>
                 <p><strong>Max VRI:</strong> ${config.maxVRI}</p>
