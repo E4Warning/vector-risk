@@ -190,17 +190,6 @@
                                 <p>Loading statistics...</p>
                             </div>
                         </div>
-                        
-                        <div class="sidebar-section" id="series-selector-section" style="display: none;">
-                            <h3>Time Series</h3>
-                            <div class="series-controls">
-                                <label>
-                                    <input type="checkbox" id="series-citywide" checked>
-                                    <span id="series-citywide-label">Citywide</span>
-                                </label>
-                                <div id="additional-series-list"></div>
-                            </div>
-                        </div>
                     </div>
                     
                     <div class="map-wrapper">
@@ -212,11 +201,24 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <h3 style="margin: 0;">Time Series</h3>
                         <button id="toggle-legend-btn" class="btn btn-small" style="display: none;">
-                            <span id="legend-btn-text">Show Legend</span>
+                            <span id="legend-btn-text">Select Series</span>
                         </button>
                     </div>
                     <div class="chart-container">
                         <canvas id="riskChart"></canvas>
+                        <div id="legend-popup" class="legend-popup" style="display: none;">
+                            <div class="legend-popup-header">
+                                <h4>Legend &amp; Series</h4>
+                                <button id="legend-close-btn" class="btn btn-small btn-secondary" type="button">Close</button>
+                            </div>
+                            <div class="series-controls" id="series-selector-section" style="display: none;">
+                                <label>
+                                    <input type="checkbox" id="series-citywide" checked>
+                                    <span id="series-citywide-label">Citywide</span>
+                                </label>
+                                <div id="additional-series-list"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

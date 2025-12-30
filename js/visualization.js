@@ -84,6 +84,12 @@ class Visualization {
         if (toggleBtn) {
             toggleBtn.style.display = 'none';
         }
+        
+        // Hide legend popup for simple charts
+        const legendPopup = document.getElementById('legend-popup');
+        if (legendPopup) {
+            legendPopup.style.display = 'none';
+        }
 
         // Load time series data
         const chartData = await this.loadTimeSeriesData(region);
@@ -200,9 +206,6 @@ class Visualization {
         } catch (error) {
             console.error('Error loading district data:', error);
         }
-
-        // Show series selector
-        this.setupSeriesSelector('barcelona', districtData);
 
         // Prepare datasets
         const datasets = [];
@@ -334,6 +337,9 @@ class Visualization {
             }
         });
         
+        // Build legend & selector UI
+        this.setupSeriesSelector('barcelona');
+        
         // Setup legend toggle button
         this.setupLegendToggle();
     }
@@ -363,9 +369,6 @@ class Visualization {
         } catch (error) {
             console.error('Error loading CCAA data:', error);
         }
-
-        // Show series selector
-        this.setupSeriesSelector('spain', ccaaData);
 
         // Prepare datasets
         const datasets = [];
@@ -498,26 +501,28 @@ class Visualization {
             }
         });
         
+        // Build legend & selector UI
+        this.setupSeriesSelector('spain');
+        
         // Setup legend toggle button
         this.setupLegendToggle();
     }
 
     /**
-     * Setup series selector UI
+     * Setup series selector UI inside the legend popup
      * @param {string} regionType - 'barcelona' or 'spain'
-     * @param {Array} data - District or CCAA data
      */
-    setupSeriesSelector(regionType, data) {
+    setupSeriesSelector(regionType) {
         const seriesSelectorSection = document.getElementById('series-selector-section');
         const citywideLabel = document.getElementById('series-citywide-label');
         const citywideCheckbox = document.getElementById('series-citywide');
         const additionalSeriesList = document.getElementById('additional-series-list');
         
-        if (!seriesSelectorSection || !additionalSeriesList) {
+        if (!seriesSelectorSection || !additionalSeriesList || !this.chart) {
             return;
         }
         
-        // Show the section
+        // Show the section inside the legend popup
         seriesSelectorSection.style.display = 'block';
         
         // Update citywide label
@@ -535,6 +540,10 @@ class Visualization {
                 citywideCheckbox.removeEventListener('change', this.citywideCheckboxListener);
             }
             
+            // Set initial state based on chart visibility
+            const citywideMeta = this.chart.getDatasetMeta(0);
+            citywideCheckbox.checked = !citywideMeta.hidden;
+            
             // Create and store new listener
             this.citywideCheckboxListener = function() {
                 if (self.chart) {
@@ -550,40 +559,42 @@ class Visualization {
         // Clear existing series
         additionalSeriesList.innerHTML = '';
         
-        // Get unique series names
-        const seriesNames = new Set();
-        data.forEach(item => {
-            const name = item.District || item.NAMEUNIT || item.district || item.name || item.ccaa;
-            if (name) {
-                seriesNames.add(name);
-            }
-        });
+        const datasets = this.chart.data?.datasets || [];
+        console.log(`Setting up series selector for ${regionType}:`, datasets.length - 1, 'series found');
         
-        console.log(`Setting up series selector for ${regionType}:`, seriesNames.size, 'series found');
-        
-        // Create checkboxes for each series
-        let index = 1; // 0 is citywide
-        Array.from(seriesNames).sort().forEach(name => {
+        // Create checkboxes for each non-citywide series based on chart datasets
+        datasets.forEach((dataset, index) => {
+            if (index === 0) return;
+            
             const label = document.createElement('label');
+            label.className = 'legend-entry';
+            
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.id = `series-checkbox-${index}`;
             checkbox.dataset.index = index;
             
+            const meta = this.chart.getDatasetMeta(index);
+            checkbox.checked = !meta.hidden;
+            
+            // Color swatch for legend
+            const swatch = document.createElement('span');
+            swatch.className = 'legend-color-swatch';
+            swatch.style.backgroundColor = dataset.borderColor || dataset.backgroundColor || '#888';
+            
             // Add event listener
             checkbox.addEventListener('change', function() {
                 if (self.chart) {
-                    const meta = self.chart.getDatasetMeta(this.dataset.index);
+                    const meta = self.chart.getDatasetMeta(parseInt(this.dataset.index, 10));
                     meta.hidden = !this.checked;
                     self.chart.update();
                 }
             });
             
             label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(' ' + name));
+            label.appendChild(swatch);
+            label.appendChild(document.createTextNode(dataset.label || `Series ${index}`));
             additionalSeriesList.appendChild(label);
-            
-            index++;
         });
     }
 
@@ -592,9 +603,9 @@ class Visualization {
      */
     setupLegendToggle() {
         const toggleBtn = document.getElementById('toggle-legend-btn');
-        const legendBtnText = document.getElementById('legend-btn-text');
+        const legendPopup = document.getElementById('legend-popup');
         
-        if (!toggleBtn || !this.chart) {
+        if (!toggleBtn || !legendPopup) {
             return;
         }
         
@@ -611,18 +622,49 @@ class Visualization {
         // Get the new button and text elements after replacement
         const btn = document.getElementById('toggle-legend-btn');
         const btnText = document.getElementById('legend-btn-text');
+        const popup = document.getElementById('legend-popup');
+        const closeBtn = document.getElementById('legend-close-btn');
+        
+        const updateButtonText = (visible) => {
+            if (btnText) {
+                btnText.textContent = visible ? 'Hide Selector' : 'Select Series';
+            }
+        };
+        
+        const hidePopup = () => {
+            popup.style.display = 'none';
+            updateButtonText(false);
+        };
+        
+        const showPopup = () => {
+            popup.style.display = 'block';
+            updateButtonText(true);
+        };
+        
+        // Remove existing close listeners by cloning
+        if (closeBtn) {
+            const newCloseBtn = closeBtn.cloneNode(true);
+            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+        }
+        
+        const refreshedCloseBtn = document.getElementById('legend-close-btn');
         
         // Add click event listener
         btn.addEventListener('click', function() {
-            if (self.chart) {
-                const currentDisplay = self.chart.options.plugins.legend.display;
-                self.chart.options.plugins.legend.display = !currentDisplay;
-                self.chart.update();
-                
-                // Update button text
-                btnText.textContent = currentDisplay ? 'Show Legend' : 'Hide Legend';
+            const isVisible = popup.style.display === 'block';
+            if (isVisible) {
+                hidePopup();
+            } else {
+                showPopup();
             }
         });
+        
+        if (refreshedCloseBtn) {
+            refreshedCloseBtn.addEventListener('click', hidePopup);
+        }
+        
+        // Ensure initial state
+        hidePopup();
     }
 
     /**
