@@ -508,7 +508,6 @@ main {
 .legend-entry.series-hidden {
     opacity: 0.6;
     color: var(--muted-text-color);
-    text-decoration: none;
 }
 
 .legend-entry.series-hidden .legend-color-swatch {

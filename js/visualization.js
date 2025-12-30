@@ -167,7 +167,6 @@ class Visualization {
                         labels: {
                             boxWidth: 12,
                             boxHeight: 12,
-                            textDecoration: () => '',
                             color: (ctx) => {
                                 const meta = ctx.chart.getDatasetMeta(ctx.datasetIndex);
                                 return meta && meta.hidden ? this.INACTIVE_LABEL_COLOR : this.ACTIVE_LABEL_COLOR;
