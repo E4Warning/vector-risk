@@ -78,6 +78,12 @@ class Visualization {
         if (seriesSelectorSection) {
             seriesSelectorSection.style.display = 'none';
         }
+        
+        // Hide legend toggle button for simple charts
+        const toggleBtn = document.getElementById('toggle-legend-btn');
+        if (toggleBtn) {
+            toggleBtn.style.display = 'none';
+        }
 
         // Load time series data
         const chartData = await this.loadTimeSeriesData(region);
@@ -282,7 +288,7 @@ class Visualization {
                         text: `Barcelona Vector Risk Time Series by District`
                     },
                     legend: {
-                        display: true,
+                        display: false, // Start hidden due to many series
                         position: 'top',
                         onClick: (e, legendItem, legend) => {
                             const index = legendItem.datasetIndex;
@@ -327,6 +333,9 @@ class Visualization {
                 }
             }
         });
+        
+        // Setup legend toggle button
+        this.setupLegendToggle();
     }
 
     /**
@@ -443,7 +452,7 @@ class Visualization {
                         text: `Spain Vector Risk Time Series by Autonomous Community`
                     },
                     legend: {
-                        display: true,
+                        display: false, // Start hidden due to many series
                         position: 'top',
                         onClick: (e, legendItem, legend) => {
                             const index = legendItem.datasetIndex;
@@ -488,6 +497,9 @@ class Visualization {
                 }
             }
         });
+        
+        // Setup legend toggle button
+        this.setupLegendToggle();
     }
 
     /**
@@ -572,6 +584,44 @@ class Visualization {
             additionalSeriesList.appendChild(label);
             
             index++;
+        });
+    }
+
+    /**
+     * Setup legend toggle button for charts with many series
+     */
+    setupLegendToggle() {
+        const toggleBtn = document.getElementById('toggle-legend-btn');
+        const legendBtnText = document.getElementById('legend-btn-text');
+        
+        if (!toggleBtn || !this.chart) {
+            return;
+        }
+        
+        // Show the toggle button
+        toggleBtn.style.display = 'inline-block';
+        
+        // Store reference to this for event listener
+        const self = this;
+        
+        // Remove existing listener if any
+        const newToggleBtn = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+        
+        // Get the new button and text elements after replacement
+        const btn = document.getElementById('toggle-legend-btn');
+        const btnText = document.getElementById('legend-btn-text');
+        
+        // Add click event listener
+        btn.addEventListener('click', function() {
+            if (self.chart) {
+                const currentDisplay = self.chart.options.plugins.legend.display;
+                self.chart.options.plugins.legend.display = !currentDisplay;
+                self.chart.update();
+                
+                // Update button text
+                btnText.textContent = currentDisplay ? 'Show Legend' : 'Hide Legend';
+            }
         });
     }
 

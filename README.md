@@ -8,10 +8,13 @@ Vector Risk Portals is a static web application that provides interactive maps a
 
 ## Features
 
-- **Interactive Maps**: Explore detailed risk maps with multiple layers using Leaflet.js
-- **Data Visualizations**: View risk trends and patterns through interactive charts
+- **Interactive Maps**: Explore detailed risk maps with multiple layers using Leaflet.js and Mapbox GL JS
+- **Data Visualizations**: View risk trends and patterns through interactive charts with toggleable legends
 - **Multiple Regions**: Access risk data for countries (Spain, Brazil) and cities (Barcelona, Rio de Janeiro)
+- **Date Selection**: View historical risk data for Spain and Barcelona
+- **Vector & Model Selection**: Choose mosquito species and prediction models (more options coming soon)
 - **Data Loading**: Supports CSV, GeoJSON, and GeoTIFF file formats
+- **Basemap Options**: Choose from OpenStreetMap, Satellite, Light Street Map, or Topographic views
 - **Responsive Design**: Works on desktop and mobile devices
 - **GitHub Pages Ready**: Static site designed for easy deployment on GitHub Pages
 
@@ -19,9 +22,11 @@ Vector Risk Portals is a static web application that provides interactive maps a
 
 - **HTML5/CSS3**: Modern web standards
 - **JavaScript (ES6+)**: Client-side logic
-- **Leaflet.js**: Interactive mapping library
+- **Leaflet.js**: Interactive mapping library for most regions
+- **Mapbox GL JS**: Vector tile rendering for Spain municipality data
 - **Chart.js**: Data visualization
 - **GeoRaster**: GeoTIFF support for raster data
+- **Chroma.js**: Color scale generation
 
 ## Project Structure
 

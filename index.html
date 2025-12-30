@@ -12,6 +12,10 @@
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossorigin=""/>
     
+    <!-- Mapbox GL JS for vector tiles -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    
     <!-- Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
     
@@ -111,6 +115,28 @@
                             <p class="info-text">Data from <a href="https://github.com/Mosquito-Alert/MosquitoAlertES" target="_blank" rel="noopener noreferrer">MosquitoAlertES</a></p>
                         </div>
                         
+                        <div class="sidebar-section" id="vector-selector-section">
+                            <h3>Mosquito Vector</h3>
+                            <select id="vector-selector" class="vector-selector">
+                                <option value="ae-albopictus" selected>Ae. albopictus</option>
+                                <option value="ae-aegypti" disabled>Ae. aegypti</option>
+                                <option value="ae-japonicus" disabled>Ae. japonicus</option>
+                                <option value="ae-koreicus" disabled>Ae. koreicus</option>
+                                <option value="culex" disabled>Culex</option>
+                            </select>
+                            <p class="info-text" style="font-size: 0.85em; margin-top: 5px;">Additional vectors coming soon</p>
+                        </div>
+                        
+                        <div class="sidebar-section" id="model-selector-section">
+                            <h3>Model</h3>
+                            <select id="model-selector" class="model-selector">
+                                <option value="mosquito-alert" selected>MosquitoAlert Model</option>
+                                <option value="ensemble" disabled>Ensemble Model</option>
+                                <option value="climatic" disabled>Climatic Model</option>
+                            </select>
+                            <p class="info-text" style="font-size: 0.85em; margin-top: 5px;">Additional models coming soon</p>
+                        </div>
+                        
                         <div class="sidebar-section">
                             <h3>Basemap</h3>
                             <select id="basemap-selector" class="basemap-selector">
@@ -183,7 +209,12 @@
                 </div>
                 
                 <div class="visualization-section">
-                    <h3>Time Series</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3 style="margin: 0;">Time Series</h3>
+                        <button id="toggle-legend-btn" class="btn btn-small" style="display: none;">
+                            <span id="legend-btn-text">Show Legend</span>
+                        </button>
+                    </div>
                     <div class="chart-container">
                         <canvas id="riskChart"></canvas>
                     </div>

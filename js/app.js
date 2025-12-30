@@ -223,10 +223,13 @@ async function showRegion(regionKey) {
         mapStats.innerHTML = '<p>Loading data...</p>';
     }
     
-    // Show/hide date selector for Barcelona MosquitoAlert data
+    // Show/hide date selector for Spain and Barcelona MosquitoAlert data
     const dateSelectorSection = document.getElementById('date-selector-section');
     if (dateSelectorSection) {
-        if (regionKey === 'barcelona' && region.dataSources.mosquitoAlertBCN && region.dataSources.mosquitoAlertBCN.enabled) {
+        const hasDateBasedData = (regionKey === 'barcelona' && region.dataSources.mosquitoAlertBCN && region.dataSources.mosquitoAlertBCN.enabled) ||
+                                  (regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled);
+        
+        if (hasDateBasedData) {
             dateSelectorSection.style.display = 'block';
             // Set default date to today
             const datePicker = document.getElementById('data-date-picker');
@@ -244,17 +247,35 @@ async function showRegion(regionKey) {
                 newDatePicker.addEventListener('change', function() {
                     if (regionKey === 'barcelona') {
                         loadBarcelonaMosquitoAlertData(this.value);
+                    } else if (regionKey === 'spain') {
+                        loadSpainMosquitoAlertData(this.value);
                     }
                 });
                 
                 // Update info text based on region
                 const infoText = dateSelectorSection.querySelector('.info-text');
                 if (infoText) {
-                    infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/bcn" target="_blank" rel="noopener noreferrer">MosquitoAlert BCN</a>';
+                    if (regionKey === 'barcelona') {
+                        infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/bcn" target="_blank" rel="noopener noreferrer">MosquitoAlert BCN</a>';
+                    } else if (regionKey === 'spain') {
+                        infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/MosquitoAlertES" target="_blank" rel="noopener noreferrer">MosquitoAlertES</a>';
+                    }
                 }
             }
         } else {
             dateSelectorSection.style.display = 'none';
+        }
+    }
+    
+    // Disable basemap selector for regions using Mapbox GL (Spain)
+    const basemapSelector = document.getElementById('basemap-selector');
+    if (basemapSelector) {
+        if (regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled) {
+            basemapSelector.disabled = true;
+            basemapSelector.title = 'Basemap selection not available for this region (using Mapbox GL with satellite imagery)';
+        } else {
+            basemapSelector.disabled = false;
+            basemapSelector.title = '';
         }
     }
     
@@ -264,7 +285,13 @@ async function showRegion(regionKey) {
             const datePicker = document.getElementById('data-date-picker');
             const dateToLoad = datePicker ? datePicker.value : new Date().toISOString().split('T')[0];
             await loadBarcelonaMosquitoAlertData(dateToLoad);
-        } 
+        }
+        // For Spain with MosquitoAlertES, load the municipality data
+        else if (regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled) {
+            const datePicker = document.getElementById('data-date-picker');
+            const dateToLoad = datePicker ? datePicker.value : new Date().toISOString().split('T')[0];
+            await loadSpainMosquitoAlertData(dateToLoad);
+        }
         // For other regions, load standard map data
         else {
             await mapManager.loadRegion(regionKey);
@@ -343,15 +370,40 @@ async function loadSpainMosquitoAlertData(date) {
                 mapManager.map = null;
             }
             
-            // Create Mapbox GL map
+            // Create Mapbox GL map with satellite basemap style
             mapboxgl.accessToken = config.mapboxAccessToken;
             
             const mapContainer = document.getElementById('map');
             mapContainer.innerHTML = ''; // Clear container
             
+            // Create a custom style with satellite raster tiles
+            const blankStyle = {
+                "version": 8,
+                "name": "Blank with Satellite",
+                "sources": {
+                    "satellite": {
+                        "type": "raster",
+                        "tiles": [
+                            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                        ],
+                        "tileSize": 256,
+                        "attribution": "Tiles &copy; Esri"
+                    }
+                },
+                "layers": [
+                    {
+                        "id": "satellite-layer",
+                        "type": "raster",
+                        "source": "satellite",
+                        "minzoom": 0,
+                        "maxzoom": 22
+                    }
+                ]
+            };
+            
             const mbMap = new mapboxgl.Map({
                 container: 'map',
-                style: 'mapbox://styles/johnrbpalmer/cklcc4q673pe517k4n5co81sn',
+                style: blankStyle,
                 center: [region.center[1], region.center[0]], // [lng, lat] format for Mapbox GL
                 zoom: region.zoom
             });
@@ -406,7 +458,7 @@ async function loadSpainMosquitoAlertData(date) {
                         'fill-color': matchExpression,
                         'fill-opacity': mapManager.currentOpacity
                     }
-                }, 'admin-1-boundary-bg');
+                });
                 
                 // Add low-res layer
                 mbMap.addLayer({
@@ -420,7 +472,7 @@ async function loadSpainMosquitoAlertData(date) {
                         'fill-color': matchExpression,
                         'fill-opacity': mapManager.currentOpacity
                     }
-                }, 'admin-1-boundary-bg');
+                });
                 
                 // Update stats
                 if (mapStats) {
