@@ -50,10 +50,23 @@ class MapManager {
             return;
         }
         
-        // Remove old base layer
-        if (this.baseLayer) {
-            this.map.removeLayer(this.baseLayer);
-        }
+        // Remove all existing tile layers (base maps) to ensure clean slate
+        // Note: This removes ALL L.TileLayer instances, which in the current
+        // codebase are only used for basemaps. If data tile layers are added
+        // in the future, they should use a different layer type or be tracked
+        // separately to avoid being removed here.
+        // TODO: Consider using a LayerGroup for basemaps or adding a custom
+        // property (e.g., layer.isBasemap = true) to distinguish basemap tiles
+        // from data tiles if needed.
+        const layersToRemove = [];
+        this.map.eachLayer((layer) => {
+            if (layer instanceof L.TileLayer) {
+                layersToRemove.push(layer);
+            }
+        });
+        layersToRemove.forEach((layer) => {
+            this.map.removeLayer(layer);
+        });
         
         // Add new base layer
         const basemap = CONFIG.basemaps[basemapKey];
@@ -62,7 +75,7 @@ class MapManager {
             maxZoom: basemap.maxZoom
         }).addTo(this.map);
         
-        // Move base layer to back
+        // Move base layer to back to ensure it's behind data layers
         this.baseLayer.bringToBack();
         
         this.currentBasemap = basemapKey;
