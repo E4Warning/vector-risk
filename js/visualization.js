@@ -570,17 +570,15 @@ class Visualization {
         datasets.forEach((dataset, index) => {
             if (index === 0) return;
             
-            const datasetIndex = index;
-            
             const label = document.createElement('label');
             label.className = 'legend-entry';
             
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.id = `series-checkbox-${index}`;
-            checkbox.dataset.index = datasetIndex;
+            checkbox.dataset.index = index;
             
-            const meta = this.chart.getDatasetMeta(datasetIndex);
+            const meta = this.chart.getDatasetMeta(index);
             checkbox.checked = !meta.hidden;
             
             // Color swatch for legend
@@ -593,7 +591,7 @@ class Visualization {
             // Add event listener
             checkbox.addEventListener('change', function() {
                 if (self.chart) {
-                    const meta = self.chart.getDatasetMeta(datasetIndex);
+                    const meta = self.chart.getDatasetMeta(index);
                     meta.hidden = !this.checked;
                     self.chart.update();
                 }
