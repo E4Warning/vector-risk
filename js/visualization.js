@@ -560,6 +560,11 @@ class Visualization {
         }
         
         // Clear existing series
+        additionalSeriesList.querySelectorAll('input[type="checkbox"]').forEach(input => {
+            if (input._handler) {
+                input.removeEventListener('change', input._handler);
+            }
+        });
         additionalSeriesList.innerHTML = '';
         
         if (!this.chart.data || !this.chart.data.datasets) {
@@ -592,14 +597,17 @@ class Visualization {
             swatch.setAttribute('aria-label', `${dataset.label || 'Series'} color`);
             
             // Add event listener
-            checkbox.addEventListener('change', function() {
+            const onCheckboxChange = function() {
                 if (self.chart) {
                     const datasetIndex = parseInt(this.dataset.index, 10);
                     const meta = self.chart.getDatasetMeta(datasetIndex);
                     meta.hidden = !this.checked;
                     self.chart.update();
                 }
-            });
+            };
+            
+            checkbox._handler = onCheckboxChange;
+            checkbox.addEventListener('change', onCheckboxChange);
             
             label.appendChild(checkbox);
             label.appendChild(swatch);
@@ -624,9 +632,9 @@ class Visualization {
         
         // Store reference to this for event listener
         const self = this;
-        const btn = document.getElementById('toggle-legend-btn');
+        const btn = toggleBtn;
         const btnText = document.getElementById('legend-btn-text');
-        const popup = document.getElementById('legend-popup');
+        const popup = legendPopup;
         const closeBtn = document.getElementById('legend-close-btn');
         
         const updateButtonText = (visible) => {
