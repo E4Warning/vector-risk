@@ -559,7 +559,11 @@ class Visualization {
         // Clear existing series
         additionalSeriesList.innerHTML = '';
         
-        const datasets = this.chart.data?.datasets || [];
+        if (!this.chart.data || !this.chart.data.datasets) {
+            return;
+        }
+        
+        const datasets = this.chart.data.datasets;
         console.log(`Setting up series selector for ${regionType}:`, datasets.length - 1, 'series found');
         
         // Create checkboxes for each non-citywide series based on chart datasets
@@ -585,7 +589,7 @@ class Visualization {
             // Add event listener
             checkbox.addEventListener('change', function() {
                 if (self.chart) {
-                    const meta = self.chart.getDatasetMeta(parseInt(this.dataset.index, 10));
+                    const meta = self.chart.getDatasetMeta(index);
                     meta.hidden = !this.checked;
                     self.chart.update();
                 }
