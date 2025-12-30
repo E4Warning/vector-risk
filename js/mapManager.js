@@ -259,8 +259,38 @@ class MapManager {
      * @param {boolean} visible - Whether to show the layer
      */
     toggleLayer(layerName, visible) {
+        if (layerName === 'risk') {
+            // Toggle Leaflet GeoJSON layer
+            if (this.layers.risk && this.map) {
+                if (visible) {
+                    this.map.addLayer(this.layers.risk);
+                } else {
+                    this.map.removeLayer(this.layers.risk);
+                }
+            }
+
+            // Toggle GeoTIFF raster layer
+            if (this.layers.geotiff && this.map) {
+                if (visible) {
+                    this.map.addLayer(this.layers.geotiff);
+                } else {
+                    this.map.removeLayer(this.layers.geotiff);
+                }
+            }
+
+            // Toggle Mapbox GL layers if present
+            if (this.mbMap) {
+                ['muni-high-res', 'muni-low-res'].forEach(layerId => {
+                    if (this.mbMap.getLayer(layerId)) {
+                        this.mbMap.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                    }
+                });
+            }
+            return;
+        }
+
         const layer = this.layers[layerName];
-        if (!layer) return;
+        if (!layer || !this.map) return;
 
         if (visible) {
             this.map.addLayer(layer);
