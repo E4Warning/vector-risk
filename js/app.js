@@ -267,6 +267,18 @@ async function showRegion(regionKey) {
         }
     }
     
+    // Disable basemap selector for regions using Mapbox GL (Spain)
+    const basemapSelector = document.getElementById('basemap-selector');
+    if (basemapSelector) {
+        if (regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled) {
+            basemapSelector.disabled = true;
+            basemapSelector.title = 'Basemap selection not available for this region (using Mapbox GL with satellite imagery)';
+        } else {
+            basemapSelector.disabled = false;
+            basemapSelector.title = '';
+        }
+    }
+    
     try {
         // For Barcelona with MosquitoAlertBCN, load the GeoTIFF data
         if (regionKey === 'barcelona' && region.dataSources.mosquitoAlertBCN && region.dataSources.mosquitoAlertBCN.enabled) {
