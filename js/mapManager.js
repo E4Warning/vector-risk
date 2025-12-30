@@ -55,10 +55,17 @@ class MapManager {
         // codebase are only used for basemaps. If data tile layers are added
         // in the future, they should use a different layer type or be tracked
         // separately to avoid being removed here.
+        // TODO: Consider using a LayerGroup for basemaps or adding a custom
+        // property (e.g., layer.isBasemap = true) to distinguish basemap tiles
+        // from data tiles if needed.
+        const layersToRemove = [];
         this.map.eachLayer((layer) => {
             if (layer instanceof L.TileLayer) {
-                this.map.removeLayer(layer);
+                layersToRemove.push(layer);
             }
+        });
+        layersToRemove.forEach((layer) => {
+            this.map.removeLayer(layer);
         });
         
         // Add new base layer
