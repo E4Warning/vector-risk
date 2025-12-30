@@ -23,8 +23,8 @@ const CONFIG = {
                      municipalitySourceLayerHighRes: 'spain_municipality_boundaries-dzvpt0',
                      mapboxAccessToken: 'pk.eyJ1Ijoiam9obnJicGFsbWVyIiwiYSI6ImFRTXhoaHcifQ.UwIptK0Is5dJdN8q-1djww',
                      maxVRI: 0.3,
-                     // Default file pattern for 1km grid GeoTIFFs (can be adjusted if the filename differs)
-                     gridFilePattern: 'grid_preds_{date}.tif',
+                     // File pattern for 1km grid GeoTIFFs from MosquitoAlertES repository
+                     gridFilePattern: 'a004_MA_predictions_all_spain_aemet_weather_forecast_pred_raster_brms_MC10_1000_{date}.tiff',
                      gridMaxVRI: 0.3
                  }
              },
