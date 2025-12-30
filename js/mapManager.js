@@ -282,7 +282,11 @@ class MapManager {
             if (this.mbMap) {
                 ['muni-high-res', 'muni-low-res'].forEach(layerId => {
                     if (this.mbMap.getLayer(layerId)) {
-                        this.mbMap.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                        try {
+                            this.mbMap.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                        } catch (e) {
+                            console.warn(`Failed to toggle Mapbox layer ${layerId}:`, e);
+                        }
                     }
                 });
             }
