@@ -8,6 +8,7 @@ class Visualization {
         this.citywideCheckboxListener = null;
         this.legendToggleListener = null;
         this.legendCloseListener = null;
+        this.DEFAULT_SERIES_COLOR = '#888';
     }
 
     /**
@@ -521,7 +522,7 @@ class Visualization {
         const additionalSeriesList = document.getElementById('additional-series-list');
         
         // Guard: ensure popup container and chart are ready
-        if (!seriesSelectorSection || !additionalSeriesList || !this.chart) {
+        if (!seriesSelectorSection || !additionalSeriesList || !this.chart || !this.chart.data || !this.chart.data.datasets) {
             return;
         }
         
@@ -567,10 +568,6 @@ class Visualization {
         });
         additionalSeriesList.innerHTML = '';
         
-        if (!this.chart.data || !this.chart.data.datasets) {
-            return;
-        }
-        
         const datasets = this.chart.data.datasets;
         console.log(`Setting up series selector for ${regionType}:`, datasets.length - 1, 'series found');
         
@@ -592,14 +589,14 @@ class Visualization {
             // Color swatch for legend
             const swatch = document.createElement('span');
             swatch.className = 'legend-color-swatch';
-            swatch.style.backgroundColor = dataset.borderColor || dataset.backgroundColor || '#888';
+            swatch.style.backgroundColor = dataset.borderColor || dataset.backgroundColor || this.DEFAULT_SERIES_COLOR;
             swatch.setAttribute('role', 'img');
             swatch.setAttribute('aria-label', `${dataset.label || 'Series'} color`);
             
             // Add event listener
             const onCheckboxChange = function() {
                 if (self.chart) {
-                    const datasetIndex = parseInt(this.dataset.index, 10);
+                    const datasetIndex = Number(this.dataset.index);
                     const meta = self.chart.getDatasetMeta(datasetIndex);
                     meta.hidden = !this.checked;
                     self.chart.update();
