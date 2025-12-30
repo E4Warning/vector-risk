@@ -60,6 +60,17 @@ class Visualization {
     }
 
     /**
+     * Apply default styling to a dataset (no points, thin lines)
+     * @param {Object} dataset - Chart.js dataset config
+     */
+    applyDefaultDatasetStyling(dataset) {
+        if (!dataset) return;
+        dataset.pointRadius = 0;
+        dataset.pointHoverRadius = 0;
+        dataset.borderWidth = 1;
+    }
+
+    /**
      * Load time series data from URL or fallback to CSV
      * @param {Object} region - Region configuration object
      * @returns {Promise<Array>} Chart data
@@ -160,23 +171,24 @@ class Visualization {
         const ctx = canvas.getContext('2d');
         const activeLabelColor = this.ACTIVE_LABEL_COLOR;
         const inactiveLabelColor = this.INACTIVE_LABEL_COLOR;
+
+        const baseDataset = {
+            label: 'Vector Risk Index',
+            data: riskData,
+            borderColor: CONFIG.riskColors.very_high,
+            backgroundColor: this.addAlpha(CONFIG.riskColors.very_high, this.CHART_OPACITY),
+            tension: 0.4,
+            yAxisID: 'y'
+        };
+
+        this.applyDefaultDatasetStyling(baseDataset);
         
         this.chart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels,
                 datasets: [
-                    {
-                        label: 'Vector Risk Index',
-                        data: riskData,
-                        borderColor: CONFIG.riskColors.very_high,
-                        backgroundColor: this.addAlpha(CONFIG.riskColors.very_high, this.CHART_OPACITY),
-                        borderWidth: 1,
-                        pointRadius: 0,
-                        pointHoverRadius: 0,
-                        tension: 0.4,
-                        yAxisID: 'y'
-                    }
+                    baseDataset
                 ]
             },
             options: {
@@ -319,11 +331,7 @@ class Visualization {
             colorIndex++;
         }
 
-        datasets.forEach(dataset => {
-            dataset.pointRadius = 0;
-            dataset.pointHoverRadius = 0;
-            dataset.borderWidth = 1;
-        });
+        datasets.forEach(dataset => this.applyDefaultDatasetStyling(dataset));
 
         // Destroy existing chart
         if (this.chart) {
@@ -492,11 +500,7 @@ class Visualization {
             colorIndex++;
         }
 
-        datasets.forEach(dataset => {
-            dataset.pointRadius = 0;
-            dataset.pointHoverRadius = 0;
-            dataset.borderWidth = 1;
-        });
+        datasets.forEach(dataset => this.applyDefaultDatasetStyling(dataset));
 
         // Destroy existing chart
         if (this.chart) {
