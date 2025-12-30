@@ -11,6 +11,58 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
+/**
+ * Normalize a date range input into start/end strings (YYYY-MM-DD)
+ * @param {string|Object} dateInput
+ * @returns {{startDate: string, endDate: string}}
+ */
+function normalizeDateRange(dateInput) {
+    const today = new Date().toISOString().split('T')[0];
+    if (typeof dateInput === 'string') {
+        return { startDate: dateInput, endDate: dateInput };
+    }
+    if (!dateInput) {
+        return { startDate: today, endDate: today };
+    }
+
+    const startDate = dateInput.startDate || dateInput.endDate || today;
+    const endDate = dateInput.endDate || dateInput.startDate || today;
+
+    if (new Date(startDate) > new Date(endDate)) {
+        return { startDate: endDate, endDate: startDate };
+    }
+    return { startDate, endDate };
+}
+
+/**
+ * Build an array of ISO date strings between start and end (inclusive)
+ * @param {{startDate: string, endDate: string}} range
+ * @returns {string[]}
+ */
+function buildDateArray(range) {
+    const { startDate, endDate } = normalizeDateRange(range);
+    const dates = [];
+    const cursor = new Date(startDate);
+    const last = new Date(endDate);
+
+    while (cursor <= last) {
+        dates.push(cursor.toISOString().split('T')[0]);
+        cursor.setDate(cursor.getDate() + 1);
+    }
+    return dates;
+}
+
+/**
+ * Format a date range for display
+ * @param {{startDate: string, endDate: string}} range
+ * @returns {string}
+ */
+function formatRangeLabel(range) {
+    const { startDate, endDate } = normalizeDateRange(range);
+    if (startDate === endDate) return startDate;
+    return `${startDate} to ${endDate}`;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
@@ -90,6 +142,20 @@ function setupLayerControls() {
     
     if (observationsLayerCheckbox) {
         observationsLayerCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                const startPicker = document.getElementById('data-start-date');
+                const endPicker = document.getElementById('data-end-date');
+                const vectorSelector = document.getElementById('vector-selector');
+                const selectedSpecies = vectorSelector ? vectorSelector.value : 'ae-albopictus';
+                const observationRange = (startPicker || endPicker) ? normalizeDateRange({
+                    startDate: startPicker?.value,
+                    endDate: endPicker?.value
+                }) : null;
+                // Reload observations if they are not present yet
+                if (!mapManager.layers.observations && !mapManager.mbMap?.getSource?.('observations-source')) {
+                    loadMosquitoObservations(mapManager.currentRegion || 'spain', selectedSpecies, observationRange);
+                }
+            }
             mapManager.toggleLayer('observations', this.checked);
         });
     }
@@ -118,6 +184,20 @@ function setupLayerControls() {
     if (basemapSelector) {
         basemapSelector.addEventListener('change', function() {
             mapManager.switchBasemap(this.value);
+        });
+    }
+
+    // Reload observations when the selected species changes
+    const vectorSelector = document.getElementById('vector-selector');
+    if (vectorSelector) {
+        vectorSelector.addEventListener('change', function() {
+            const startPicker = document.getElementById('data-start-date');
+            const endPicker = document.getElementById('data-end-date');
+            const observationRange = (startPicker || endPicker) ? normalizeDateRange({
+                startDate: startPicker?.value,
+                endDate: endPicker?.value
+            }) : null;
+            loadMosquitoObservations(mapManager.currentRegion || 'spain', this.value, observationRange);
         });
     }
 }
@@ -231,35 +311,48 @@ async function showRegion(regionKey) {
         
         if (hasDateBasedData) {
             dateSelectorSection.style.display = 'block';
-            // Set default date to today
-            const datePicker = document.getElementById('data-date-picker');
-            if (datePicker) {
-                if (!datePicker.value) {
-                    const today = new Date().toISOString().split('T')[0];
-                    datePicker.value = today;
-                }
-                
-                // Remove existing listeners and add new one to prevent duplicates
-                const newDatePicker = datePicker.cloneNode(true);
-                datePicker.parentNode.replaceChild(newDatePicker, datePicker);
-                
-                // Add event listener for date changes
-                newDatePicker.addEventListener('change', function() {
+            const startPicker = document.getElementById('data-start-date');
+            const endPicker = document.getElementById('data-end-date');
+            const today = new Date().toISOString().split('T')[0];
+
+            if (startPicker && endPicker) {
+                if (!startPicker.value) startPicker.value = today;
+                if (!endPicker.value) endPicker.value = today;
+
+                // Avoid duplicate listeners by cloning nodes
+                const newStartPicker = startPicker.cloneNode(true);
+                const newEndPicker = endPicker.cloneNode(true);
+                startPicker.parentNode.replaceChild(newStartPicker, startPicker);
+                endPicker.parentNode.replaceChild(newEndPicker, endPicker);
+
+                const refreshForRange = () => {
+                    const range = normalizeDateRange({
+                        startDate: newStartPicker.value,
+                        endDate: newEndPicker.value
+                    });
+
                     if (regionKey === 'barcelona') {
-                        loadBarcelonaMosquitoAlertData(this.value);
+                        loadBarcelonaMosquitoAlertData(range);
                     } else if (regionKey === 'spain') {
-                        loadSpainMosquitoAlertData(this.value);
+                        loadSpainMosquitoAlertData(range);
                     }
-                });
-                
-                // Update info text based on region
-                const infoText = dateSelectorSection.querySelector('.info-text');
-                if (infoText) {
-                    if (regionKey === 'barcelona') {
-                        infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/bcn" target="_blank" rel="noopener noreferrer">MosquitoAlert BCN</a>';
-                    } else if (regionKey === 'spain') {
-                        infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/MosquitoAlertES" target="_blank" rel="noopener noreferrer">MosquitoAlertES</a>';
-                    }
+
+                    const vectorSelector = document.getElementById('vector-selector');
+                    const selectedSpecies = vectorSelector ? vectorSelector.value : 'ae-albopictus';
+                    loadMosquitoObservations(regionKey, selectedSpecies, range);
+                };
+
+                newStartPicker.addEventListener('change', refreshForRange);
+                newEndPicker.addEventListener('change', refreshForRange);
+            }
+
+            // Update info text based on region
+            const infoText = dateSelectorSection.querySelector('.info-text');
+            if (infoText) {
+                if (regionKey === 'barcelona') {
+                    infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/bcn" target="_blank" rel="noopener noreferrer">MosquitoAlert BCN</a>';
+                } else if (regionKey === 'spain') {
+                    infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/MosquitoAlertES" target="_blank" rel="noopener noreferrer">MosquitoAlertES</a>';
                 }
             }
         } else {
@@ -282,20 +375,39 @@ async function showRegion(regionKey) {
     try {
         // For Barcelona with MosquitoAlertBCN, load the GeoTIFF data
         if (regionKey === 'barcelona' && region.dataSources.mosquitoAlertBCN && region.dataSources.mosquitoAlertBCN.enabled) {
-            const datePicker = document.getElementById('data-date-picker');
-            const dateToLoad = datePicker ? datePicker.value : new Date().toISOString().split('T')[0];
-            await loadBarcelonaMosquitoAlertData(dateToLoad);
+            const startPicker = document.getElementById('data-start-date');
+            const endPicker = document.getElementById('data-end-date');
+            const dateRange = normalizeDateRange({
+                startDate: startPicker?.value,
+                endDate: endPicker?.value
+            });
+            await loadBarcelonaMosquitoAlertData(dateRange);
         }
         // For Spain with MosquitoAlertES, load the municipality data
         else if (regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled) {
-            const datePicker = document.getElementById('data-date-picker');
-            const dateToLoad = datePicker ? datePicker.value : new Date().toISOString().split('T')[0];
-            await loadSpainMosquitoAlertData(dateToLoad);
+            const startPicker = document.getElementById('data-start-date');
+            const endPicker = document.getElementById('data-end-date');
+            const dateRange = normalizeDateRange({
+                startDate: startPicker?.value,
+                endDate: endPicker?.value
+            });
+            await loadSpainMosquitoAlertData(dateRange);
         }
         // For other regions, load standard map data
         else {
             await mapManager.loadRegion(regionKey);
         }
+        
+        // Load mosquito observations overlay when available
+        const vectorSelector = document.getElementById('vector-selector');
+        const selectedSpecies = vectorSelector ? vectorSelector.value : 'ae-albopictus';
+        const startPicker = document.getElementById('data-start-date');
+        const endPicker = document.getElementById('data-end-date');
+        const observationRange = (startPicker || endPicker) ? normalizeDateRange({
+            startDate: startPicker?.value,
+            endDate: endPicker?.value
+        }) : null;
+        await loadMosquitoObservations(regionKey, selectedSpecies, observationRange);
         
         // Create visualization
         await visualization.createRiskChart(regionKey);
@@ -336,31 +448,73 @@ document.addEventListener('visibilitychange', function() {
 
 /**
  * Load MosquitoAlert Spain data for a specific date
- * @param {string} date - Date in YYYY-MM-DD format
+ * @param {string|Object} dateInput - Date or date range
  */
-async function loadSpainMosquitoAlertData(date) {
+async function loadSpainMosquitoAlertData(dateInput) {
+    const { startDate, endDate } = normalizeDateRange(dateInput);
+    const datesToLoad = buildDateArray({ startDate, endDate });
     const region = CONFIG.regions['spain'];
     if (!region || !region.dataSources.mosquitoAlertES) {
         console.error('MosquitoAlertES configuration not found for Spain');
         return;
     }
     
+    mapManager.currentRegion = 'spain';
     const config = region.dataSources.mosquitoAlertES;
-    const filename = config.filePattern.replace('{date}', date);
-    const url = config.baseUrl + filename;
     
     try {
         const mapStats = document.getElementById('map-stats');
         if (mapStats) {
-            mapStats.innerHTML = '<p>Loading data for ' + escapeHtml(date) + '...</p>';
+            mapStats.innerHTML = '<p>Loading data for ' + escapeHtml(formatRangeLabel({ startDate, endDate })) + '...</p>';
         }
         
-        // Fetch the municipality predictions JSON
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // Fetch all requested dates in parallel
+        const responses = await Promise.allSettled(
+            datesToLoad.map(date => {
+                const dateUrl = config.baseUrl + config.filePattern.replace('{date}', date);
+                return fetch(dateUrl).then(res => ({ res, date }));
+            })
+        );
+
+        const allRows = [];
+        for (const result of responses) {
+            if (result.status !== 'fulfilled') continue;
+            const { res, date } = result.value;
+            if (!res.ok) {
+                console.warn(`Skipping ${date} because it returned ${res.status}`);
+                continue;
+            }
+            const muniData = await res.json();
+            allRows.push({ date, rows: muniData });
         }
-        const muniData = await response.json();
+
+        // Aggregate by municipality (mean of ma_prob_mean)
+        const aggregatedByCode = new Map();
+        allRows.forEach(({ rows }) => {
+            rows.forEach(row => {
+                const natCodeStr = row['NATCODE']?.toString();
+                const value = parseFloat(row['ma_prob_mean']);
+                if (!natCodeStr || Number.isNaN(value)) return;
+
+                const current = aggregatedByCode.get(natCodeStr) || { sum: 0, count: 0, sample: { NATCODE: natCodeStr } };
+                current.sum += value;
+                current.count += 1;
+                aggregatedByCode.set(natCodeStr, current);
+            });
+        });
+
+        const aggregatedArray = Array.from(aggregatedByCode.entries()).map(([code, agg]) => ({
+            ...agg.sample,
+            NATCODE: code,
+            ma_prob_mean: agg.count > 0 ? agg.sum / agg.count : null
+        }));
+
+        if (aggregatedArray.length === 0) {
+            if (mapStats) {
+                mapStats.innerHTML = '<p class="error-message">No municipality predictions available for the selected range.</p>';
+            }
+            return;
+        }
         
         // If we have Mapbox GL JS available and mapbox token, use Mapbox GL
         if (typeof mapboxgl !== 'undefined' && config.mapboxAccessToken) {
@@ -433,7 +587,7 @@ async function loadSpainMosquitoAlertData(date) {
                 // Create match expression for coloring municipalities
                 const matchExpression = ['match', ['get', 'NATCODE']];
                 
-                for (const row of muniData) {
+                for (const row of aggregatedArray) {
                     const value = row['ma_prob_mean'];
                     if (value !== null && value !== undefined) {
                         // Scale value with max
@@ -476,14 +630,14 @@ async function loadSpainMosquitoAlertData(date) {
                 
                 // Update stats
                 if (mapStats) {
-                    const avgRisk = muniData.reduce((sum, item) => 
-                        sum + (parseFloat(item.ma_prob_mean) || 0), 0) / muniData.length;
+                    const avgRisk = aggregatedArray.length > 0 ? aggregatedArray.reduce((sum, item) => 
+                        sum + (parseFloat(item.ma_prob_mean) || 0), 0) / aggregatedArray.length : 0;
                     
                     mapStats.innerHTML = `
                         <p><strong>Region:</strong> Spain</p>
-                        <p><strong>Date:</strong> ${escapeHtml(date)}</p>
+                        <p><strong>Date:</strong> ${escapeHtml(formatRangeLabel({ startDate, endDate }))}</p>
                         <p><strong>Data Source:</strong> MosquitoAlertES</p>
-                        <p><strong>Municipalities:</strong> ${muniData.length}</p>
+                        <p><strong>Municipalities:</strong> ${aggregatedArray.length}</p>
                         <p><strong>Avg VRI:</strong> ${avgRisk.toFixed(3)}</p>
                     `;
                 }
@@ -493,8 +647,8 @@ async function loadSpainMosquitoAlertData(date) {
             if (mapStats) {
                 mapStats.innerHTML = `
                     <p><strong>Region:</strong> Spain</p>
-                    <p><strong>Date:</strong> ${escapeHtml(date)}</p>
-                    <p><strong>Municipalities:</strong> ${muniData.length}</p>
+                    <p><strong>Date:</strong> ${escapeHtml(formatRangeLabel({ startDate, endDate }))}</p>
+                    <p><strong>Municipalities:</strong> ${aggregatedArray.length}</p>
                     <p class="info-message">Loaded data from MosquitoAlertES</p>
                 `;
             }
@@ -511,23 +665,24 @@ async function loadSpainMosquitoAlertData(date) {
 
 /**
  * Load MosquitoAlert Barcelona GeoTIFF data for a specific date
- * @param {string} date - Date in YYYY-MM-DD format
+ * @param {string|Object} dateInput - Date or date range
  */
-async function loadBarcelonaMosquitoAlertData(date) {
+async function loadBarcelonaMosquitoAlertData(dateInput) {
+    const { startDate, endDate } = normalizeDateRange(dateInput);
+    const datesToLoad = buildDateArray({ startDate, endDate });
     const region = CONFIG.regions['barcelona'];
     if (!region || !region.dataSources.mosquitoAlertBCN) {
         console.error('MosquitoAlertBCN configuration not found for Barcelona');
         return;
     }
     
+    mapManager.currentRegion = 'barcelona';
     const config = region.dataSources.mosquitoAlertBCN;
-    const filename = config.filePattern.replace('{date}', date);
-    const url = config.baseUrl + filename;
     
     try {
         const mapStats = document.getElementById('map-stats');
         if (mapStats) {
-            mapStats.innerHTML = '<p>Loading data for ' + escapeHtml(date) + '...</p>';
+            mapStats.innerHTML = '<p>Loading data for ' + escapeHtml(formatRangeLabel({ startDate, endDate })) + '...</p>';
         }
         
         // Remove existing Mapbox map if present
@@ -546,19 +701,29 @@ async function loadBarcelonaMosquitoAlertData(date) {
             mapManager.layers.geotiff = null;
         }
         
-        // Fetch and parse GeoTIFF
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const arrayBuffer = await response.arrayBuffer();
-        
-        // Parse GeoTIFF using georaster library
+        // Fetch and parse all GeoTIFFs, then average pixel values
         if (typeof parseGeoraster === 'undefined') {
             throw new Error('parseGeoraster library not available');
         }
-        
-        const georaster = await parseGeoraster(arrayBuffer);
+
+        const georasters = [];
+        for (const date of datesToLoad) {
+            const url = config.baseUrl + config.filePattern.replace('{date}', date);
+            const response = await fetch(url);
+            if (!response.ok) {
+                console.warn(`Skipping ${url} (status ${response.status})`);
+                continue;
+            }
+            const arrayBuffer = await response.arrayBuffer();
+            const raster = await parseGeoraster(arrayBuffer);
+            georasters.push(raster);
+        }
+
+        if (georasters.length === 0) {
+            throw new Error('No GeoTIFFs could be loaded for the selected range.');
+        }
+
+        const averagedGeoraster = averageGeorasters(georasters);
         
         // Create color scale
         const scale = chroma.scale("Spectral").domain([1, 0]);
@@ -569,7 +734,7 @@ async function loadBarcelonaMosquitoAlertData(date) {
         }
         
         mapManager.layers.geotiff = new GeoRasterLayer({
-            georaster: georaster,
+            georaster: averagedGeoraster,
             opacity: mapManager.currentOpacity,
             pixelValuesToColorFn: function(pixelValues) {
                 const pixelValue = pixelValues[0]; // single band
@@ -594,7 +759,7 @@ async function loadBarcelonaMosquitoAlertData(date) {
         if (mapStats) {
             mapStats.innerHTML = `
                 <p><strong>Region:</strong> Barcelona</p>
-                <p><strong>Date:</strong> ${escapeHtml(date)}</p>
+                <p><strong>Date:</strong> ${escapeHtml(formatRangeLabel({ startDate, endDate }))}</p>
                 <p><strong>Data Source:</strong> MosquitoAlert BCN</p>
                 <p><strong>Type:</strong> GeoTIFF Raster</p>
                 <p><strong>Max VRI:</strong> ${config.maxVRI}</p>
@@ -607,5 +772,136 @@ async function loadBarcelonaMosquitoAlertData(date) {
         if (mapStats) {
             mapStats.innerHTML = '<p class="error-message">Error loading Barcelona data. The data for this date may not be available yet.</p>';
         }
+    }
+}
+
+/**
+ * Average a list of GeoRaster objects (single band) into a new GeoRaster
+ * @param {Array} georasters
+ * @returns {Object} averaged georaster
+ */
+function averageGeorasters(georasters) {
+    if (!georasters || georasters.length === 0) return null;
+    const base = georasters[0];
+    if (!base.values || base.values.length === 0 || !base.values[0]) return null;
+    const firstBand = base.values[0];
+    if (!Array.isArray(firstBand) || firstBand.length === 0 || !Array.isArray(firstBand[0])) return null;
+    const bandCount = base.values.length;
+    const height = base.height || firstBand.length;
+    const width = base.width || (firstBand[0] ? firstBand[0].length : 0);
+    if (!height || !width) return null;
+    const noData = base.noDataValue;
+
+    const sums = Array.from({ length: bandCount }, () =>
+        Array.from({ length: height }, () => new Float64Array(width))
+    );
+    const counts = Array.from({ length: bandCount }, () =>
+        Array.from({ length: height }, () => new Uint16Array(width))
+    );
+
+    georasters.forEach(raster => {
+        if (!raster || !raster.values || raster.values.length < bandCount) return;
+        const band0 = raster.values[0];
+        if (!band0 || band0.length !== height || !Array.isArray(band0[0]) || band0[0].length !== width) return;
+
+        for (let b = 0; b < bandCount; b++) {
+            const band = raster.values[b];
+            for (let y = 0; y < height; y++) {
+                const row = band[y];
+                const sumRow = sums[b][y];
+                const countRow = counts[b][y];
+                for (let x = 0; x < width; x++) {
+                    const val = row[x];
+                    if (val === null || val === undefined) continue;
+                    if (noData !== undefined && val === noData) continue;
+                    sumRow[x] += val;
+                    countRow[x] += 1;
+                }
+            }
+        }
+    });
+
+    const averagedValues = sums.map((bandSums, b) =>
+        bandSums.map((rowSums, y) => {
+            const countRow = counts[b][y];
+            const averagedRow = [];
+            for (let x = 0; x < width; x++) {
+                const c = countRow[x];
+                if (c > 0) {
+                    averagedRow.push(rowSums[x] / c);
+                } else {
+                    averagedRow.push(noData !== undefined ? noData : null);
+                }
+            }
+            return averagedRow;
+        })
+    );
+
+    return { ...base, values: averagedValues };
+}
+
+/**
+ * Load and display mosquito observation reports for a species and date range
+ * @param {string} regionKey
+ * @param {string} speciesKey
+ * @param {Object} dateRange
+ */
+async function loadMosquitoObservations(regionKey, speciesKey, dateRange) {
+    const observationsConfig = CONFIG.observationsSource;
+    if (!observationsConfig) return;
+
+    const range = normalizeDateRange(dateRange || new Date().toISOString().split('T')[0]);
+    const { startDate, endDate } = range;
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+
+    const speciesAliases = {
+        'ae-albopictus': ['aedes albopictus', 'albopictus', 'ae. albopictus'],
+        'ae-aegypti': ['aedes aegypti', 'aegypti', 'ae. aegypti'],
+        'ae-japonicus': ['aedes japonicus', 'japonicus'],
+        'ae-koreicus': ['aedes koreicus', 'koreicus'],
+        'culex': ['culex', 'culex pipiens']
+    };
+    const speciesTerms = speciesAliases[speciesKey] || [speciesKey];
+    const normalizedSpeciesTerms = speciesTerms.map(term => term.toLowerCase());
+
+    const observationsUrl = observationsConfig.baseUrl + (observationsConfig.fallbackFile || '');
+    const observations = await dataLoader.loadObservations(observationsUrl);
+    const features = Array.isArray(observations?.features) ? observations.features : [];
+
+    const dateProps = observationsConfig.datePropertyCandidates || [];
+    const speciesProps = observationsConfig.speciesPropertyCandidates || [];
+
+    const isWithinRange = (value) => {
+        if (!value) return false;
+        const date = new Date(value);
+        return !Number.isNaN(date.getTime()) && date >= startDateObj && date <= endDateObj;
+    };
+
+    const matchesSpecies = (props) => {
+        const propValue = speciesProps.map(key => props?.[key]).find(Boolean);
+        if (!propValue) return false;
+        const normalized = propValue.toString().toLowerCase();
+        return normalizedSpeciesTerms.some(term => normalized.includes(term));
+    };
+
+    const filteredFeatures = features.filter(feature => {
+        const props = feature.properties || {};
+        const dateValue = dateProps.map(key => props[key]).find(Boolean);
+        const inRange = isWithinRange(dateValue || props.date || props.timestamp);
+        return inRange && matchesSpecies(props);
+    });
+
+    const collection = {
+        type: 'FeatureCollection',
+        features: filteredFeatures
+    };
+
+    mapManager.setObservationsData(collection);
+
+    const mapStats = document.getElementById('map-stats');
+    if (mapStats && filteredFeatures.length === 0) {
+        const existingHtml = mapStats.innerHTML;
+        mapStats.innerHTML = existingHtml + `<p class="info-message">No observation reports for ${escapeHtml(speciesKey)} between ${escapeHtml(startDate)} and ${escapeHtml(endDate)}.</p>`;
     }
 }

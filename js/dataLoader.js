@@ -107,6 +107,34 @@ class DataLoader {
     }
 
     /**
+     * Load observation GeoJSON from a URL
+     * @param {string} url - URL to GeoJSON feature collection
+     * @returns {Promise<Object>} GeoJSON data or empty collection
+     */
+    async loadObservations(url) {
+        if (!url) {
+            return { type: 'FeatureCollection', features: [] };
+        }
+
+        if (this.cache.has(url)) {
+            return this.cache.get(url);
+        }
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            this.cache.set(url, data);
+            return data;
+        } catch (error) {
+            console.warn(`Could not load observations from ${url}:`, error);
+            return { type: 'FeatureCollection', features: [] };
+        }
+    }
+
+    /**
      * Generate sample CSV data for demonstration
      * @returns {Array} Sample data
      */

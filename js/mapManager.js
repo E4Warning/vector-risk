@@ -8,8 +8,8 @@ class MapManager {
         this.currentOpacity = 0.7; // Default opacity
         this.layers = {
             risk: null,
-            observations: null,  // Placeholder for future observations layer
-            range: null,         // Placeholder for future range layer
+            observations: null,
+            range: null,
             geotiff: null
         };
         this.currentRegion = null;
@@ -34,8 +34,8 @@ class MapManager {
         // Reset tracked layers since the map has been recreated
         this.layers = {
             risk: null,
-            observations: null,  // Placeholder for future observations layer
-            range: null,         // Placeholder for future range layer
+            observations: null,
+            range: null,
             geotiff: null
         };
 
@@ -214,6 +214,75 @@ class MapManager {
     }
 
     /**
+     * Add or update mosquito observation points on the map
+     * Supports both Leaflet and Mapbox GL map instances.
+     * @param {Object} observationsGeoJSON - FeatureCollection of point observations
+     */
+    setObservationsData(observationsGeoJSON) {
+        if (!observationsGeoJSON) return;
+
+        // Mapbox GL path
+        if (this.mbMap) {
+            if (this.mbMap.getLayer('observations-layer')) {
+                this.mbMap.removeLayer('observations-layer');
+            }
+            if (this.mbMap.getSource('observations-source')) {
+                this.mbMap.removeSource('observations-source');
+            }
+
+            this.mbMap.addSource('observations-source', {
+                type: 'geojson',
+                data: observationsGeoJSON
+            });
+
+            this.mbMap.addLayer({
+                id: 'observations-layer',
+                type: 'circle',
+                source: 'observations-source',
+                paint: {
+                    'circle-radius': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        5, 3,
+                        10, 5,
+                        15, 8
+                    ],
+                    'circle-color': '#ff4081',
+                    'circle-opacity': 0.9,
+                    'circle-stroke-color': '#ffffff',
+                    'circle-stroke-width': 1
+                }
+            });
+
+            // Track that observations are loaded (store reference metadata)
+            this.layers.observations = { type: 'mapbox-layer', id: 'observations-layer' };
+            return;
+        }
+
+        // Leaflet path
+        if (this.layers.observations && this.map) {
+            this.map.removeLayer(this.layers.observations);
+            this.layers.observations = null;
+        }
+
+        if (this.map && typeof L !== 'undefined' && observationsGeoJSON.features && observationsGeoJSON.features.length > 0) {
+            this.layers.observations = L.geoJSON(observationsGeoJSON, {
+                pointToLayer: (feature, latlng) => {
+                    return L.circleMarker(latlng, {
+                        radius: 5,
+                        fillColor: '#ff4081',
+                        color: '#fff',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                    });
+                }
+            }).addTo(this.map);
+        }
+    }
+
+    /**
      * Get style for a GeoJSON feature
      * @param {Object} feature - GeoJSON feature
      * @returns {Object} Style object
@@ -245,12 +314,23 @@ class MapManager {
      * Clear all layers from the map
      */
     clearLayers() {
-        Object.keys(this.layers).forEach(key => {
-            if (this.layers[key]) {
-                this.map.removeLayer(this.layers[key]);
-                this.layers[key] = null;
+        if (this.mbMap) {
+            if (this.mbMap.getLayer('observations-layer')) {
+                this.mbMap.removeLayer('observations-layer');
             }
-        });
+            if (this.mbMap.getSource('observations-source')) {
+                this.mbMap.removeSource('observations-source');
+            }
+        }
+
+        if (this.map) {
+            Object.keys(this.layers).forEach(key => {
+                if (this.layers[key]) {
+                    this.map.removeLayer(this.layers[key]);
+                    this.layers[key] = null;
+                }
+            });
+        }
     }
 
     /**
@@ -289,6 +369,28 @@ class MapManager {
                         }
                     }
                 });
+            }
+            return;
+        }
+
+        if (layerName === 'observations') {
+            if (this.layers.observations && this.map) {
+                if (visible) {
+                    this.map.addLayer(this.layers.observations);
+                } else {
+                    this.map.removeLayer(this.layers.observations);
+                }
+            }
+
+            if (this.mbMap) {
+                const obsLayerId = this.layers.observations?.id || 'observations-layer';
+                if (this.mbMap.getLayer(obsLayerId)) {
+                    try {
+                        this.mbMap.setLayoutProperty(obsLayerId, 'visibility', visible ? 'visible' : 'none');
+                    } catch (e) {
+                        console.warn('Failed to toggle Mapbox observations layer:', e);
+                    }
+                }
             }
             return;
         }
@@ -355,8 +457,8 @@ class MapManager {
         }
         this.layers = {
             risk: null,
-            observations: null,  // Placeholder for future observations layer
-            range: null,         // Placeholder for future range layer
+            observations: null,
+            range: null,
             geotiff: null
         };
     }

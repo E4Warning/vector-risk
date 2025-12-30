@@ -331,6 +331,20 @@ main {
     margin-bottom: 0.5rem;
 }
 
+.date-range {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.date-range-label {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+    color: #444;
+    gap: 0.35rem;
+}
+
 .basemap-selector,
 .vector-selector,
 .model-selector {
