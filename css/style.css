@@ -486,11 +486,32 @@ main {
 }
 
 .legend-color-swatch {
-    width: 16px;
+    width: 12px;
     height: 12px;
-    border-radius: 3px;
+    border-radius: 2px;
     border: 1px solid var(--border-color);
     display: inline-block;
+}
+
+#additional-series-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    column-gap: 0.75rem;
+    align-items: start;
+}
+
+#additional-series-list label {
+    justify-content: flex-start;
+}
+
+.legend-entry.series-hidden {
+    opacity: 0.6;
+    color: #777;
+    text-decoration: none;
+}
+
+.legend-entry.series-hidden .legend-color-swatch {
+    opacity: 0.6;
 }
 
 .map-wrapper {

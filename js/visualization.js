@@ -144,6 +144,15 @@ class Visualization {
                     mode: 'index',
                     intersect: false
                 },
+                elements: {
+                    line: {
+                        borderWidth: 1.5
+                    },
+                    point: {
+                        radius: 0,
+                        hoverRadius: 0
+                    }
+                },
                 plugins: {
                     title: {
                         display: true,
@@ -151,7 +160,17 @@ class Visualization {
                     },
                     legend: {
                         display: true,
-                        position: 'top'
+                        position: 'top',
+                        align: 'start',
+                        labels: {
+                            boxWidth: 12,
+                            boxHeight: 12,
+                            textDecoration: () => '',
+                            color: (ctx) => {
+                                const meta = ctx.chart.getDatasetMeta(ctx.datasetIndex);
+                                return meta && meta.hidden ? '#888' : '#333';
+                            }
+                        }
                     },
                     tooltip: {
                         callbacks: {
@@ -261,7 +280,7 @@ class Visualization {
                 borderColor: color,
                 backgroundColor: this.addAlpha(color, this.CHART_OPACITY),
                 tension: 0.4,
-                hidden: true // Start hidden
+                hidden: false // Start visible
             });
             
             colorIndex++;
@@ -287,6 +306,15 @@ class Visualization {
                 interaction: {
                     mode: 'index',
                     intersect: false
+                },
+                elements: {
+                    line: {
+                        borderWidth: 1.5
+                    },
+                    point: {
+                        radius: 0,
+                        hoverRadius: 0
+                    }
                 },
                 plugins: {
                     title: {
@@ -425,7 +453,7 @@ class Visualization {
                 borderColor: color,
                 backgroundColor: this.addAlpha(color, this.CHART_OPACITY),
                 tension: 0.4,
-                hidden: true // Start hidden
+                hidden: false // Start visible
             });
             
             colorIndex++;
@@ -451,6 +479,15 @@ class Visualization {
                 interaction: {
                     mode: 'index',
                     intersect: false
+                },
+                elements: {
+                    line: {
+                        borderWidth: 1.5
+                    },
+                    point: {
+                        radius: 0,
+                        hoverRadius: 0
+                    }
                 },
                 plugins: {
                     title: {
@@ -539,6 +576,7 @@ class Visualization {
         
         // Setup citywide checkbox listener
         if (citywideCheckbox) {
+            const citywideWrapper = citywideCheckbox.closest('label');
             // Remove existing listener if it exists
             if (this.citywideCheckboxListener) {
                 citywideCheckbox.removeEventListener('change', this.citywideCheckboxListener);
@@ -547,6 +585,9 @@ class Visualization {
             // Set initial state based on chart visibility
             const citywideMeta = this.chart.getDatasetMeta(0);
             citywideCheckbox.checked = !citywideMeta.hidden;
+            if (citywideWrapper) {
+                citywideWrapper.classList.toggle('series-hidden', citywideMeta.hidden);
+            }
             
             // Create and store new listener
             this.citywideCheckboxListener = function() {
@@ -554,6 +595,9 @@ class Visualization {
                     const meta = self.chart.getDatasetMeta(0); // Index 0 is citywide
                     meta.hidden = !this.checked;
                     self.chart.update();
+                    if (citywideWrapper) {
+                        citywideWrapper.classList.toggle('series-hidden', meta.hidden);
+                    }
                 }
             };
             
@@ -585,6 +629,7 @@ class Visualization {
             
             const meta = this.chart.getDatasetMeta(index);
             checkbox.checked = !meta.hidden;
+            label.classList.toggle('series-hidden', meta.hidden);
             
             // Color swatch for legend
             const swatch = document.createElement('span');
@@ -600,6 +645,7 @@ class Visualization {
                     const meta = self.chart.getDatasetMeta(datasetIndex);
                     meta.hidden = !this.checked;
                     self.chart.update();
+                    label.classList.toggle('series-hidden', meta.hidden);
                 }
             };
             
@@ -636,7 +682,7 @@ class Visualization {
         
         const updateButtonText = (visible) => {
             if (btnText) {
-                btnText.textContent = visible ? 'Hide Selector' : 'Select Series';
+                btnText.textContent = visible ? 'Hide Series' : 'Select Series';
             }
         };
         
