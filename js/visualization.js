@@ -269,9 +269,6 @@ class Visualization {
         // Create new chart
         const ctx = canvas.getContext('2d');
         
-        // Store legend visibility state
-        let legendVisible = false;
-        
         this.chart = new Chart(ctx, {
             type: 'line',
             data: {

@@ -370,13 +370,13 @@ async function loadSpainMosquitoAlertData(date) {
                 mapManager.map = null;
             }
             
-            // Create Mapbox GL map with a blank style
+            // Create Mapbox GL map with satellite basemap style
             mapboxgl.accessToken = config.mapboxAccessToken;
             
             const mapContainer = document.getElementById('map');
             mapContainer.innerHTML = ''; // Clear container
             
-            // Create a blank style with satellite raster tiles
+            // Create a custom style with satellite raster tiles
             const blankStyle = {
                 "version": 8,
                 "name": "Blank with Satellite",
