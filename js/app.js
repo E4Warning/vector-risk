@@ -30,7 +30,7 @@ function setBasemapSelectorAvailability(disabled, message = '') {
     if (!basemapSelector) return;
 
     basemapSelector.disabled = disabled;
-    basemapSelector.title = disabled ? message : '';
+    basemapSelector.title = message || (disabled ? message : '');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -575,7 +575,7 @@ async function loadSpainMosquitoAlertData(date, modelSelection = 'mosquito-alert
             });
         } else {
             // Fallback message if Mapbox not available
-            setBasemapSelectorAvailability(false);
+            setBasemapSelectorAvailability(false, 'Basemap selection available (Leaflet view)');
             if (mapStats) {
                 mapStats.innerHTML = `
                     <p><strong>Region:</strong> Spain</p>
@@ -619,7 +619,7 @@ async function loadSpainMosquitoAlertGridData(date) {
 
     mapManager.initMap();
     mapManager.map.setView(region.center, region.zoom);
-    setBasemapSelectorAvailability(false);
+    setBasemapSelectorAvailability(false, 'Basemap selection available for GeoTIFF grid (Leaflet view)');
 
     // Clear existing GeoRaster layers
     if (mapManager.layers.geotiff) {
