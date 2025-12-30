@@ -71,6 +71,12 @@ class Visualization {
         const canvas = document.getElementById('riskChart');
         if (!canvas) return;
 
+        // Hide series selector for simple charts
+        const seriesSelectorSection = document.getElementById('series-selector-section');
+        if (seriesSelectorSection) {
+            seriesSelectorSection.style.display = 'none';
+        }
+
         // Load time series data
         const chartData = await this.loadTimeSeriesData(region);
 
@@ -179,6 +185,9 @@ class Visualization {
             const response = await fetch(region.dataSources.districtTimeseries);
             if (response.ok) {
                 districtData = await response.json();
+                console.log('Barcelona district data loaded:', districtData.length, 'items');
+            } else {
+                console.warn('Failed to load Barcelona district data:', response.status);
             }
         } catch (error) {
             console.error('Error loading district data:', error);
@@ -336,6 +345,9 @@ class Visualization {
             const response = await fetch(region.dataSources.ccaaTimeseries);
             if (response.ok) {
                 ccaaData = await response.json();
+                console.log('Spain CCAA data loaded:', ccaaData.length, 'items');
+            } else {
+                console.warn('Failed to load Spain CCAA data:', response.status);
             }
         } catch (error) {
             console.error('Error loading CCAA data:', error);
@@ -526,6 +538,8 @@ class Visualization {
                 seriesNames.add(name);
             }
         });
+        
+        console.log(`Setting up series selector for ${regionType}:`, seriesNames.size, 'series found');
         
         // Create checkboxes for each series
         let index = 1; // 0 is citywide
