@@ -513,7 +513,7 @@ class Visualization {
             citywideLabel.textContent = regionType === 'barcelona' ? 'Barcelona Citywide' : 'Spain Countrywide';
         }
         
-        // Store reference to this for use in event listeners
+        // Store reference to this for use in all event listeners
         const self = this;
         
         // Setup citywide checkbox listener
