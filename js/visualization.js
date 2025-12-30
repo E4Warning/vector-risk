@@ -4,6 +4,8 @@ class Visualization {
         this.chart = null;
         // Configuration constants
         this.CHART_OPACITY = 0.25; // 40 in hex = 0.25 alpha
+        // Store event listeners for cleanup
+        this.citywideCheckboxListener = null;
     }
 
     /**
@@ -516,12 +518,13 @@ class Visualization {
         
         // Setup citywide checkbox listener
         if (citywideCheckbox) {
-            // Store the listener so we can remove it later
-            if (citywideCheckbox._chartListener) {
-                citywideCheckbox.removeEventListener('change', citywideCheckbox._chartListener);
+            // Remove existing listener if it exists
+            if (this.citywideCheckboxListener) {
+                citywideCheckbox.removeEventListener('change', this.citywideCheckboxListener);
             }
             
-            citywideCheckbox._chartListener = function() {
+            // Create and store new listener
+            this.citywideCheckboxListener = function() {
                 if (self.chart) {
                     const meta = self.chart.getDatasetMeta(0); // Index 0 is citywide
                     meta.hidden = !this.checked;
@@ -529,7 +532,7 @@ class Visualization {
                 }
             };
             
-            citywideCheckbox.addEventListener('change', citywideCheckbox._chartListener);
+            citywideCheckbox.addEventListener('change', this.citywideCheckboxListener);
         }
         
         // Clear existing series
