@@ -511,20 +511,25 @@ class Visualization {
             citywideLabel.textContent = regionType === 'barcelona' ? 'Barcelona Citywide' : 'Spain Countrywide';
         }
         
-        // Setup citywide checkbox listener
+        // Store reference to this for use in event listeners
         const self = this;
+        
+        // Setup citywide checkbox listener
         if (citywideCheckbox) {
-            // Remove existing listeners by cloning
-            const newCitywideCheckbox = citywideCheckbox.cloneNode(true);
-            citywideCheckbox.parentNode.replaceChild(newCitywideCheckbox, citywideCheckbox);
+            // Store the listener so we can remove it later
+            if (citywideCheckbox._chartListener) {
+                citywideCheckbox.removeEventListener('change', citywideCheckbox._chartListener);
+            }
             
-            newCitywideCheckbox.addEventListener('change', function() {
+            citywideCheckbox._chartListener = function() {
                 if (self.chart) {
                     const meta = self.chart.getDatasetMeta(0); // Index 0 is citywide
                     meta.hidden = !this.checked;
                     self.chart.update();
                 }
-            });
+            };
+            
+            citywideCheckbox.addEventListener('change', citywideCheckbox._chartListener);
         }
         
         // Clear existing series
