@@ -223,11 +223,10 @@ async function showRegion(regionKey) {
         mapStats.innerHTML = '<p>Loading data...</p>';
     }
     
-    // Show/hide date selector for Spain with MosquitoAlertES data or Barcelona
+    // Show/hide date selector for Barcelona MosquitoAlert data
     const dateSelectorSection = document.getElementById('date-selector-section');
     if (dateSelectorSection) {
-        if ((regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled) ||
-            (regionKey === 'barcelona' && region.dataSources.mosquitoAlertBCN && region.dataSources.mosquitoAlertBCN.enabled)) {
+        if (regionKey === 'barcelona' && region.dataSources.mosquitoAlertBCN && region.dataSources.mosquitoAlertBCN.enabled) {
             dateSelectorSection.style.display = 'block';
             // Set default date to today
             const datePicker = document.getElementById('data-date-picker');
@@ -243,9 +242,7 @@ async function showRegion(regionKey) {
                 
                 // Add event listener for date changes
                 newDatePicker.addEventListener('change', function() {
-                    if (regionKey === 'spain') {
-                        loadSpainMosquitoAlertData(this.value);
-                    } else if (regionKey === 'barcelona') {
+                    if (regionKey === 'barcelona') {
                         loadBarcelonaMosquitoAlertData(this.value);
                     }
                 });
@@ -253,11 +250,7 @@ async function showRegion(regionKey) {
                 // Update info text based on region
                 const infoText = dateSelectorSection.querySelector('.info-text');
                 if (infoText) {
-                    if (regionKey === 'spain') {
-                        infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/MosquitoAlertES" target="_blank" rel="noopener noreferrer">MosquitoAlertES</a>';
-                    } else if (regionKey === 'barcelona') {
-                        infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/bcn" target="_blank" rel="noopener noreferrer">MosquitoAlert BCN</a>';
-                    }
+                    infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/bcn" target="_blank" rel="noopener noreferrer">MosquitoAlert BCN</a>';
                 }
             }
         } else {
@@ -266,14 +259,8 @@ async function showRegion(regionKey) {
     }
     
     try {
-        // For Spain with MosquitoAlertES, load the data directly
-        if (regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled) {
-            const datePicker = document.getElementById('data-date-picker');
-            const dateToLoad = datePicker ? datePicker.value : new Date().toISOString().split('T')[0];
-            await loadSpainMosquitoAlertData(dateToLoad);
-        } 
         // For Barcelona with MosquitoAlertBCN, load the GeoTIFF data
-        else if (regionKey === 'barcelona' && region.dataSources.mosquitoAlertBCN && region.dataSources.mosquitoAlertBCN.enabled) {
+        if (regionKey === 'barcelona' && region.dataSources.mosquitoAlertBCN && region.dataSources.mosquitoAlertBCN.enabled) {
             const datePicker = document.getElementById('data-date-picker');
             const dateToLoad = datePicker ? datePicker.value : new Date().toISOString().split('T')[0];
             await loadBarcelonaMosquitoAlertData(dateToLoad);
@@ -497,27 +484,14 @@ async function loadBarcelonaMosquitoAlertData(date) {
             mapManager.mbMap = null;
         }
         
-        // Initialize Leaflet map if not present
-        if (!mapManager.map) {
-            const mapContainer = document.getElementById('map');
-            mapContainer.innerHTML = ''; // Clear container
-            mapManager.map = L.map('map').setView(region.center, region.zoom);
-            
-            // Add Mapbox tile layer as base layer
-            mapManager.baseLayer = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-                maxZoom: 20,
-                id: config.mapboxStyleId,
-                tileSize: 512,
-                zoomOffset: -1,
-                accessToken: config.mapboxAccessToken
-            }).addTo(mapManager.map);
-        } else {
-            // Clear existing GeoRaster layers
-            if (mapManager.layers.geotiff) {
-                mapManager.map.removeLayer(mapManager.layers.geotiff);
-                mapManager.layers.geotiff = null;
-            }
+        // Initialize Leaflet map with the current basemap
+        mapManager.initMap();
+        mapManager.map.setView(region.center, region.zoom);
+        
+        // Clear existing GeoRaster layers
+        if (mapManager.layers.geotiff) {
+            mapManager.map.removeLayer(mapManager.layers.geotiff);
+            mapManager.layers.geotiff = null;
         }
         
         // Fetch and parse GeoTIFF
