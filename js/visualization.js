@@ -31,13 +31,32 @@ class Visualization {
     getLineElementsConfig() {
         return {
             line: {
-                borderWidth: 1.5
+                borderWidth: 1
             },
             point: {
                 radius: 0,
-                hoverRadius: 0
+                hoverRadius: 0,
+                hitRadius: 0,
+                borderWidth: 0
             }
         };
+    }
+
+    /**
+     * Ensure all datasets are visible
+     */
+    ensureAllSeriesVisible() {
+        if (!this.chart || !this.chart.data || !Array.isArray(this.chart.data.datasets)) {
+            return;
+        }
+
+        this.chart.data.datasets.forEach((_, index) => {
+            const meta = this.chart.getDatasetMeta(index);
+            if (meta) {
+                meta.hidden = false;
+            }
+        });
+        this.chart.update();
     }
 
     /**
@@ -152,6 +171,9 @@ class Visualization {
                         data: riskData,
                         borderColor: CONFIG.riskColors.very_high,
                         backgroundColor: this.addAlpha(CONFIG.riskColors.very_high, this.CHART_OPACITY),
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        pointHoverRadius: 0,
                         tension: 0.4,
                         yAxisID: 'y'
                     }
@@ -297,6 +319,12 @@ class Visualization {
             colorIndex++;
         }
 
+        datasets.forEach(dataset => {
+            dataset.pointRadius = 0;
+            dataset.pointHoverRadius = 0;
+            dataset.borderWidth = 1;
+        });
+
         // Destroy existing chart
         if (this.chart) {
             this.chart.destroy();
@@ -371,6 +399,8 @@ class Visualization {
             }
         });
         
+        this.ensureAllSeriesVisible();
+
         // Build legend & selector UI
         this.setupSeriesSelector('barcelona');
         
@@ -462,6 +492,12 @@ class Visualization {
             colorIndex++;
         }
 
+        datasets.forEach(dataset => {
+            dataset.pointRadius = 0;
+            dataset.pointHoverRadius = 0;
+            dataset.borderWidth = 1;
+        });
+
         // Destroy existing chart
         if (this.chart) {
             this.chart.destroy();
@@ -536,6 +572,8 @@ class Visualization {
             }
         });
         
+        this.ensureAllSeriesVisible();
+
         // Build legend & selector UI
         this.setupSeriesSelector('spain');
         
