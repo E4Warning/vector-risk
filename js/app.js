@@ -274,11 +274,11 @@ async function showRegion(regionKey) {
     
     // Show/hide date selector for Spain and Barcelona MosquitoAlert data
     const dateSelectorSection = document.getElementById('date-selector-section');
-        if (dateSelectorSection) {
-            const hasDateBasedData = (regionKey === 'barcelona' && region.dataSources.mosquitoAlertBCN && region.dataSources.mosquitoAlertBCN.enabled) ||
-                                      (regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled);
-            
-            if (hasDateBasedData) {
+    if (dateSelectorSection) {
+        const hasDateBasedData = (regionKey === 'barcelona' && region.dataSources.mosquitoAlertBCN && region.dataSources.mosquitoAlertBCN.enabled) ||
+                                  (regionKey === 'spain' && region.dataSources.mosquitoAlertES && region.dataSources.mosquitoAlertES.enabled);
+        
+        if (hasDateBasedData) {
             dateSelectorSection.style.display = 'block';
             // Set default date to today
             const datePicker = document.getElementById('data-date-picker');
@@ -683,7 +683,7 @@ async function loadSpainMosquitoAlertGridData(date) {
         opacity: mapManager.currentOpacity,
         pixelValuesToColorFn: function(pixelValues) {
             const pixelValue = pixelValues[0];
-            if (pixelValue === null || pixelValue === undefined || pixelValue < 0) {
+            if (pixelValue < 0 || pixelValue === null || pixelValue === undefined) {
                 return null;
             }
             const scaledValue = Math.min(pixelValue, maxVRI) / maxVRI;
