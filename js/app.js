@@ -344,6 +344,9 @@ async function showRegion(regionKey) {
                 const reportSection = document.getElementById('report-section');
                 if (reportSection) {
                     reportSection.style.display = 'block';
+                    if (mapManager?.currentRegion) {
+                        showRegionReport(mapManager.currentRegion);
+                    }
                     reportSection.scrollIntoView({ behavior: 'smooth' });
                 }
             };
