@@ -43,19 +43,28 @@ function sanitizeReportHtml(rawHtml) {
     const doc = parser.parseFromString(rawHtml, 'text/html');
 
     doc.querySelectorAll('script, iframe, object, embed').forEach(el => el.remove());
+    doc.querySelectorAll('link[rel="stylesheet"]').forEach(el => el.remove());
+    doc.querySelectorAll('style').forEach(el => el.remove());
     doc.querySelectorAll('*').forEach(el => {
         Array.from(el.attributes).forEach(attr => {
             if (attr.name.toLowerCase().startsWith('on')) {
                 el.removeAttribute(attr.name);
             }
+            if (attr.name.toLowerCase() === 'style') {
+                el.removeAttribute(attr.name);
+            }
+            if (['href', 'src'].includes(attr.name.toLowerCase())) {
+                const value = (attr.value || '').trim().toLowerCase();
+                if (value.startsWith('javascript:') || value.startsWith('data:') || value.startsWith('vbscript:')) {
+                    el.removeAttribute(attr.name);
+                }
+            }
         });
     });
 
-    const styles = Array.from(doc.querySelectorAll('style')).map(node => node.outerHTML).join('\n');
-    const styleLinks = Array.from(doc.querySelectorAll('link[rel="stylesheet"]')).map(node => node.outerHTML).join('\n');
     const bodyContent = doc.body ? doc.body.innerHTML : '';
 
-    return `<!doctype html><html><head>${styleLinks}${styles}</head><body>${bodyContent}</body></html>`;
+    return `<!DOCTYPE html><html><head></head><body>${bodyContent}</body></html>`;
 }
 
 /**
@@ -100,9 +109,16 @@ async function showRegionReport(regionKey) {
     container.innerHTML = '<p class="info-text">Loading the latest report...</p>';
 
     try {
-        const response = await fetch(reportUrl, { cache: 'no-store' });
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const response = await fetch(reportUrl, { signal: controller.signal });
+        clearTimeout(timeout);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.toLowerCase().includes('text/html')) {
+            throw new Error(`Unexpected content type: ${contentType}`);
         }
         const rawHtml = await response.text();
         const sanitized = sanitizeReportHtml(rawHtml);
