@@ -564,6 +564,37 @@ main {
     height: 400px;
 }
 
+.report-section {
+    margin-top: 2rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.report-container {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    min-height: 300px;
+}
+
+.report-frame {
+    width: 100%;
+    min-height: 700px;
+    border: none;
+    background: white;
+}
+
 /* About Section */
 #about-section h2 {
     color: #333;
