@@ -363,7 +363,7 @@ async function showRegion(regionKey) {
         if (typeof reportUrl === 'string') {
             try {
                 const parsed = new URL(reportUrl);
-                isSafeUrl = parsed.protocol === 'http:' || parsed.protocol === 'https:';
+                isSafeUrl = parsed.protocol === 'https:';
             } catch (e) {
                 isSafeUrl = false;
             }
@@ -372,7 +372,7 @@ async function showRegion(regionKey) {
             latestReportLink.href = reportUrl;
             latestReportLink.style.display = 'inline-block';
         } else {
-            latestReportLink.removeAttribute('href');
+            latestReportLink.href = '#';
             latestReportLink.style.display = 'none';
         }
     }
@@ -460,6 +460,7 @@ async function showRegion(regionKey) {
                         infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/bcn" target="_blank" rel="noopener noreferrer">MosquitoAlert BCN</a>';
                         infoText.style.display = 'block';
                     } else {
+                        // Attribution intentionally hidden for Spain per product request
                         infoText.textContent = '';
                         infoText.style.display = 'none';
                     }
