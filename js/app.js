@@ -13,6 +13,7 @@ function escapeHtml(str) {
 
 const ALLOWED_REPORT_CONTENT_TYPES = ['text/html', 'text/plain'];
 const EMPTY_CONTENT_TYPE_LABEL = '(empty)';
+const reportLinkHandlers = new WeakMap();
 
 /**
  * Get the currently selected model
@@ -338,8 +339,9 @@ async function showRegion(regionKey) {
             latestReportLink.removeAttribute('target');
             latestReportLink.removeAttribute('rel');
             latestReportLink.style.display = 'inline-block';
-            if (latestReportLink._reportHandler) {
-                latestReportLink.removeEventListener('click', latestReportLink._reportHandler);
+            const existingHandler = reportLinkHandlers.get(latestReportLink);
+            if (existingHandler) {
+                latestReportLink.removeEventListener('click', existingHandler);
             }
             const handler = function(e) {
                 e.preventDefault();
@@ -351,7 +353,7 @@ async function showRegion(regionKey) {
                     reportSection.scrollIntoView({ behavior: 'smooth' });
                 }
             };
-            latestReportLink._reportHandler = handler;
+            reportLinkHandlers.set(latestReportLink, handler);
             latestReportLink.addEventListener('click', handler);
         } else {
             latestReportLink.href = '#';
