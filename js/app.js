@@ -359,7 +359,15 @@ async function showRegion(regionKey) {
     const latestReportLink = document.getElementById('latest-report-link');
     if (latestReportLink) {
         const reportUrl = region?.dataSources?.reportUrl;
-        const isSafeUrl = typeof reportUrl === 'string' && (reportUrl.startsWith('http://') || reportUrl.startsWith('https://'));
+        let isSafeUrl = false;
+        if (typeof reportUrl === 'string') {
+            try {
+                const parsed = new URL(reportUrl);
+                isSafeUrl = parsed.protocol === 'http:' || parsed.protocol === 'https:';
+            } catch (e) {
+                isSafeUrl = false;
+            }
+        }
         if (reportUrl && isSafeUrl) {
             latestReportLink.href = reportUrl;
             latestReportLink.style.display = 'inline-block';
@@ -448,11 +456,12 @@ async function showRegion(regionKey) {
                 // Update info text based on region
                 const infoText = dateSelectorSection.querySelector('.info-text');
                 if (infoText) {
-                    infoText.textContent = '';
-                    infoText.style.display = 'none';
                     if (regionKey === 'barcelona') {
                         infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/bcn" target="_blank" rel="noopener noreferrer">MosquitoAlert BCN</a>';
                         infoText.style.display = 'block';
+                    } else {
+                        infoText.textContent = '';
+                        infoText.style.display = 'none';
                     }
                 }
             }
