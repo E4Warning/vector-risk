@@ -359,7 +359,7 @@ async function showRegion(regionKey) {
     const latestReportLink = document.getElementById('latest-report-link');
     if (latestReportLink) {
         const reportUrl = region?.dataSources?.reportUrl;
-        if (regionKey === 'spain' && reportUrl) {
+        if (reportUrl) {
             latestReportLink.href = reportUrl;
             latestReportLink.style.display = 'inline-block';
         } else {
