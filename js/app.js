@@ -340,6 +340,9 @@ async function showRegion(regionKey) {
             latestReportLink.style.display = 'inline-block';
             latestReportLink.onclick = function(e) {
                 e.preventDefault();
+                if (regionKey) {
+                    showRegionReport(regionKey);
+                }
                 const reportSection = document.getElementById('report-section');
                 if (reportSection) {
                     reportSection.style.display = 'block';
