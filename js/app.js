@@ -363,8 +363,8 @@ async function showRegion(regionKey) {
             latestReportLink.href = reportUrl;
             latestReportLink.style.display = 'inline-block';
         } else {
-            latestReportLink.style.display = 'none';
             latestReportLink.removeAttribute('href');
+            latestReportLink.style.display = 'none';
         }
     }
     
