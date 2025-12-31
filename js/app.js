@@ -11,6 +11,9 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
+const ALLOWED_REPORT_CONTENT_TYPES = ['text/html', 'text/plain'];
+const EMPTY_CONTENT_TYPE_LABEL = '(empty)';
+
 /**
  * Get the currently selected model
  * @returns {string}
@@ -121,9 +124,12 @@ async function showRegionReport(regionKey) {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const contentType = (response.headers.get('content-type') || '').toLowerCase();
-            if (!contentType.startsWith('text/')) {
-                throw new Error(`Unexpected content type: ${contentType || 'unknown'}`);
+            const contentTypeHeader = response.headers.get('content-type') || '';
+            const contentType = contentTypeHeader.toLowerCase();
+            const mimeType = contentType.split(';')[0].trim() || '';
+            const isTextContent = ALLOWED_REPORT_CONTENT_TYPES.includes(mimeType);
+            if (!isTextContent) {
+                throw new Error(`Unexpected content type (MIME): ${mimeType || EMPTY_CONTENT_TYPE_LABEL}`);
             }
             const rawHtml = await response.text();
             const sanitized = sanitizeReportHtml(rawHtml);
@@ -144,9 +150,7 @@ async function showRegionReport(regionKey) {
         }
     }
 
-    if (lastError) {
-        console.error('Error loading daily report:', lastError);
-    }
+    console.error('Error loading daily report:', lastError);
     container.innerHTML = '<p class="error-message">Unable to load the daily report right now.</p>';
 }
 
