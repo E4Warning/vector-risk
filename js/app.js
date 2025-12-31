@@ -10,9 +10,6 @@ function escapeHtml(str) {
     div.textContent = str;
     return div.innerHTML;
 }
-
-const ALLOWED_REPORT_CONTENT_TYPES = ['text/html', 'text/plain'];
-const EMPTY_CONTENT_TYPE_LABEL = '(empty)';
 const reportLinkHandlers = new WeakMap();
 
 /**
@@ -35,40 +32,6 @@ function setBasemapSelectorAvailability(disabled, message = '') {
 
     basemapSelector.disabled = disabled;
     basemapSelector.title = message || (disabled ? message : '');
-}
-
-/**
- * Remove unsafe elements and attributes from HTML before embedding
- * @param {string} rawHtml
- * @returns {string}
- */
-function sanitizeReportHtml(rawHtml) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(rawHtml, 'text/html');
-
-    doc.querySelectorAll('script, iframe, object, embed').forEach(el => el.remove());
-    doc.querySelectorAll('link[rel="stylesheet"]').forEach(el => el.remove());
-    doc.querySelectorAll('style').forEach(el => el.remove());
-    doc.querySelectorAll('*').forEach(el => {
-        Array.from(el.attributes).forEach(attr => {
-            if (attr.name.toLowerCase().startsWith('on')) {
-                el.removeAttribute(attr.name);
-            }
-            if (attr.name.toLowerCase() === 'style') {
-                el.removeAttribute(attr.name);
-            }
-            if (['href', 'src'].includes(attr.name.toLowerCase())) {
-                const value = (attr.value || '').trim().toLowerCase();
-                if (value.startsWith('javascript:') || value.startsWith('data:') || value.startsWith('vbscript:')) {
-                    el.removeAttribute(attr.name);
-                }
-            }
-        });
-    });
-
-    const bodyContent = doc.body ? doc.body.innerHTML : '';
-
-    return `<!DOCTYPE html><html><head></head><body>${bodyContent}</body></html>`;
 }
 
 /**
