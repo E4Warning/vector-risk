@@ -98,11 +98,9 @@ async function showRegionReport(regionKey) {
     }
 
     const region = CONFIG.regions[regionKey];
-    const reportUrl = region?.dataSources?.reportUrl;
-    const fallbackReportUrl = region?.dataSources?.reportFallbackUrl;
-    const urlsToTry = [reportUrl, fallbackReportUrl].filter(Boolean);
+    const hasReport = Boolean(region?.dataSources?.reportUrl || region?.dataSources?.reportFallbackUrl);
 
-    if (!urlsToTry.length) {
+    if (!hasReport) {
         hideReportSection();
         return;
     }
@@ -111,47 +109,7 @@ async function showRegionReport(regionKey) {
     if (title) {
         title.textContent = `${region.name} Daily Report`;
     }
-    container.innerHTML = '<p class="info-text">Loading the latest report...</p>';
-
-    let lastError = null;
-
-    for (const url of urlsToTry) {
-        try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 10000);
-            const response = await fetch(url, { signal: controller.signal });
-            clearTimeout(timeout);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const contentTypeHeader = response.headers.get('content-type') || '';
-            const contentType = contentTypeHeader.toLowerCase();
-            const mimeType = contentType.split(';')[0].trim() || '';
-            const isTextContent = ALLOWED_REPORT_CONTENT_TYPES.includes(mimeType);
-            if (!isTextContent) {
-                throw new Error(`Unexpected content type (MIME): ${mimeType || EMPTY_CONTENT_TYPE_LABEL}`);
-            }
-            const rawHtml = await response.text();
-            const sanitized = sanitizeReportHtml(rawHtml);
-
-            const iframe = document.createElement('iframe');
-            iframe.className = 'report-frame';
-            iframe.setAttribute('sandbox', 'allow-same-origin');
-            iframe.setAttribute('loading', 'lazy');
-            iframe.setAttribute('title', `${region.name} daily report`);
-            iframe.srcdoc = sanitized;
-
-            container.innerHTML = '';
-            container.appendChild(iframe);
-            return;
-        } catch (error) {
-            lastError = error;
-            console.error(`Error loading daily report from ${url}:`, error);
-        }
-    }
-
-    console.error('Error loading daily report:', lastError);
-    container.innerHTML = '<p class="error-message">Unable to load the daily report right now.</p>';
+    container.innerHTML = '<p class="info-text">Coming Soon</p>';
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -374,19 +332,21 @@ async function showRegion(regionKey) {
     
     const latestReportLink = document.getElementById('latest-report-link');
     if (latestReportLink) {
-        const reportUrl = region?.dataSources?.reportUrl;
-        let isSafeUrl = false;
-        if (typeof reportUrl === 'string') {
-            try {
-                const parsed = new URL(reportUrl);
-                isSafeUrl = parsed.protocol === 'https:';
-            } catch (e) {
-                isSafeUrl = false;
-            }
-        }
-        if (reportUrl && isSafeUrl) {
-            latestReportLink.href = reportUrl;
+        const hasReport = Boolean(region?.dataSources?.reportUrl || region?.dataSources?.reportFallbackUrl);
+        latestReportLink.onclick = null;
+        if (hasReport) {
+            latestReportLink.href = '#report-section';
+            latestReportLink.removeAttribute('target');
+            latestReportLink.removeAttribute('rel');
             latestReportLink.style.display = 'inline-block';
+            latestReportLink.onclick = function(e) {
+                e.preventDefault();
+                const reportSection = document.getElementById('report-section');
+                if (reportSection) {
+                    reportSection.style.display = 'block';
+                    reportSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            };
         } else {
             latestReportLink.href = '#';
             latestReportLink.style.display = 'none';
