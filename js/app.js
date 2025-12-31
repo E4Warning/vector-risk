@@ -333,7 +333,6 @@ async function showRegion(regionKey) {
     const latestReportLink = document.getElementById('latest-report-link');
     if (latestReportLink) {
         const hasReport = Boolean(region?.dataSources?.reportUrl || region?.dataSources?.reportFallbackUrl);
-        latestReportLink.onclick = null;
         if (hasReport) {
             latestReportLink.href = '#report-section';
             latestReportLink.removeAttribute('target');
@@ -344,9 +343,6 @@ async function showRegion(regionKey) {
                 const reportSection = document.getElementById('report-section');
                 if (reportSection) {
                     reportSection.style.display = 'block';
-                    if (mapManager?.currentRegion) {
-                        showRegionReport(mapManager.currentRegion);
-                    }
                     reportSection.scrollIntoView({ behavior: 'smooth' });
                 }
             };
