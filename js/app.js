@@ -356,6 +356,18 @@ async function showRegion(regionKey) {
         regionTitle.textContent = `${region.name} Risk Map`;
     }
     
+    const latestReportLink = document.getElementById('latest-report-link');
+    if (latestReportLink) {
+        const reportUrl = region?.dataSources?.reportUrl;
+        if (regionKey === 'spain' && reportUrl) {
+            latestReportLink.href = reportUrl;
+            latestReportLink.style.display = 'inline-block';
+        } else {
+            latestReportLink.style.display = 'none';
+            latestReportLink.removeAttribute('href');
+        }
+    }
+    
     // Update navigation
     document.querySelectorAll('.main-nav a').forEach(a => {
         a.classList.remove('active');
@@ -437,8 +449,10 @@ async function showRegion(regionKey) {
                 if (infoText) {
                     if (regionKey === 'barcelona') {
                         infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/bcn" target="_blank" rel="noopener noreferrer">MosquitoAlert BCN</a>';
-                    } else if (regionKey === 'spain') {
-                        infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/MosquitoAlertES" target="_blank" rel="noopener noreferrer">MosquitoAlertES</a>';
+                        infoText.style.display = 'block';
+                    } else {
+                        infoText.textContent = '';
+                        infoText.style.display = 'none';
                     }
                 }
             }
