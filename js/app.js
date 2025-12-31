@@ -450,6 +450,9 @@ async function showRegion(regionKey) {
                     if (regionKey === 'barcelona') {
                         infoText.innerHTML = 'Data from <a href="https://github.com/Mosquito-Alert/bcn" target="_blank" rel="noopener noreferrer">MosquitoAlert BCN</a>';
                         infoText.style.display = 'block';
+                    } else if (regionKey === 'spain') {
+                        infoText.textContent = '';
+                        infoText.style.display = 'none';
                     } else {
                         infoText.textContent = '';
                         infoText.style.display = 'none';
