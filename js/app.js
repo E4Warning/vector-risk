@@ -338,17 +338,21 @@ async function showRegion(regionKey) {
             latestReportLink.removeAttribute('target');
             latestReportLink.removeAttribute('rel');
             latestReportLink.style.display = 'inline-block';
-            latestReportLink.onclick = function(e) {
+            if (latestReportLink._reportHandler) {
+                latestReportLink.removeEventListener('click', latestReportLink._reportHandler);
+            }
+            const handler = function(e) {
                 e.preventDefault();
                 if (regionKey) {
                     showRegionReport(regionKey);
                 }
                 const reportSection = document.getElementById('report-section');
                 if (reportSection) {
-                    reportSection.style.display = 'block';
                     reportSection.scrollIntoView({ behavior: 'smooth' });
                 }
             };
+            latestReportLink._reportHandler = handler;
+            latestReportLink.addEventListener('click', handler);
         } else {
             latestReportLink.href = '#';
             latestReportLink.style.display = 'none';
