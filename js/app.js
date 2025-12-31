@@ -345,9 +345,6 @@ async function showRegion(regionKey) {
             }
             const handler = function(e) {
                 e.preventDefault();
-                if (regionKey) {
-                    showRegionReport(regionKey);
-                }
                 const reportSection = document.getElementById('report-section');
                 if (reportSection) {
                     reportSection.scrollIntoView({ behavior: 'smooth' });
