@@ -1,21 +1,22 @@
 // Configuration for data sources and regions
 const CONFIG = {
     regions: {
-        spain: {
-            name: 'Spain',
-            type: 'country',
-            center: [40.4637, -3.7492],
-            zoom: 6,
-            dataSources: {
-                geojson: 'data/spain-risk.geojson',
-                csv: 'data/spain-timeseries.csv',
-                geotiff: 'data/spain-risk.tif',
-                timeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/time_profile_country.json',
-                ccaaTimeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/time_profile_ccaas.json',
-                mosquitoAlertES: {
-                    enabled: true,
-                    baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/',
-                    filePattern: 'muni_preds_{date}.json',
+         spain: {
+             name: 'Spain',
+             type: 'country',
+             center: [40.4637, -3.7492],
+             zoom: 6,
+             dataSources: {
+                 geojson: 'data/spain-risk.geojson',
+                 csv: 'data/spain-timeseries.csv',
+                 geotiff: 'data/spain-risk.tif',
+                 timeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/time_profile_country.json',
+                 ccaaTimeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/time_profile_ccaas.json',
+                 reportUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/refs/heads/main/daily_report.html',
+                 mosquitoAlertES: {
+                     enabled: true,
+                     baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/',
+                     filePattern: 'muni_preds_{date}.json',
                     description: 'Data from MosquitoAlertES - Citizen science mosquito surveillance',
                     municipalityBoundariesLowRes: 'mapbox://johnrbpalmer.4bfv6pbn',
                      municipalityBoundariesHighRes: 'mapbox://johnrbpalmer.48qdct4s',

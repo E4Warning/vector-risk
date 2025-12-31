@@ -33,6 +33,95 @@ function setBasemapSelectorAvailability(disabled, message = '') {
     basemapSelector.title = message || (disabled ? message : '');
 }
 
+/**
+ * Remove unsafe elements and attributes from HTML before embedding
+ * @param {string} rawHtml
+ * @returns {string}
+ */
+function sanitizeReportHtml(rawHtml) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(rawHtml, 'text/html');
+
+    doc.querySelectorAll('script, iframe, object, embed').forEach(el => el.remove());
+    doc.querySelectorAll('*').forEach(el => {
+        Array.from(el.attributes).forEach(attr => {
+            if (attr.name.toLowerCase().startsWith('on')) {
+                el.removeAttribute(attr.name);
+            }
+        });
+    });
+
+    const styles = Array.from(doc.querySelectorAll('style')).map(node => node.outerHTML).join('\n');
+    const styleLinks = Array.from(doc.querySelectorAll('link[rel="stylesheet"]')).map(node => node.outerHTML).join('\n');
+    const bodyContent = doc.body ? doc.body.innerHTML : '';
+
+    return `<!doctype html><html><head>${styleLinks}${styles}</head><body>${bodyContent}</body></html>`;
+}
+
+/**
+ * Hide the report section and reset its content
+ */
+function hideReportSection() {
+    const section = document.getElementById('report-section');
+    const container = document.getElementById('daily-report-container');
+    if (section) {
+        section.style.display = 'none';
+    }
+    if (container) {
+        container.innerHTML = '<p class="info-text">Select a region with a daily report to view it here.</p>';
+    }
+}
+
+/**
+ * Load and display the latest report for a region
+ * @param {string} regionKey
+ */
+async function showRegionReport(regionKey) {
+    const section = document.getElementById('report-section');
+    const container = document.getElementById('daily-report-container');
+    const title = document.getElementById('report-title');
+
+    if (!section || !container) {
+        return;
+    }
+
+    const region = CONFIG.regions[regionKey];
+    const reportUrl = region?.dataSources?.reportUrl;
+
+    if (!reportUrl) {
+        hideReportSection();
+        return;
+    }
+
+    section.style.display = 'block';
+    if (title) {
+        title.textContent = `${region.name} Daily Report`;
+    }
+    container.innerHTML = '<p class="info-text">Loading the latest report...</p>';
+
+    try {
+        const response = await fetch(reportUrl, { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const rawHtml = await response.text();
+        const sanitized = sanitizeReportHtml(rawHtml);
+
+        const iframe = document.createElement('iframe');
+        iframe.className = 'report-frame';
+        iframe.setAttribute('sandbox', 'allow-same-origin');
+        iframe.setAttribute('loading', 'lazy');
+        iframe.setAttribute('title', `${region.name} daily report`);
+        iframe.srcdoc = sanitized;
+
+        container.innerHTML = '';
+        container.appendChild(iframe);
+    } catch (error) {
+        console.error('Error loading daily report:', error);
+        container.innerHTML = '<p class="error-message">Unable to load the daily report right now.</p>';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
@@ -49,6 +138,16 @@ function initializeApp() {
     
     // Set up region links
     setupRegionLinks();
+
+    // Set up report reload action
+    const reloadButton = document.getElementById('reload-report-btn');
+    if (reloadButton) {
+        reloadButton.addEventListener('click', function() {
+            if (mapManager?.currentRegion) {
+                showRegionReport(mapManager.currentRegion);
+            }
+        });
+    }
     
     // Show home section by default
     showHome();
@@ -245,7 +344,9 @@ async function showRegion(regionKey) {
     document.querySelectorAll('.main-nav a').forEach(a => {
         a.classList.remove('active');
     });
-    
+
+    hideReportSection();
+
     // Check if region is coming soon
     if (region.comingSoon) {
         // Show coming soon message
@@ -355,6 +456,7 @@ async function showRegion(regionKey) {
         
         // Create visualization
         await visualization.createRiskChart(regionKey);
+        await showRegionReport(regionKey);
     } catch (error) {
         console.error('Error loading region:', error);
         if (mapStats) {
