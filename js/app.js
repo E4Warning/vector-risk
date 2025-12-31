@@ -11,6 +11,9 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
+const ALLOWED_REPORT_CONTENT_TYPES = ['text/html', 'text/plain'];
+const EMPTY_CONTENT_TYPE_LABEL = '(empty)';
+
 /**
  * Get the currently selected model
  * @returns {string}
@@ -96,8 +99,10 @@ async function showRegionReport(regionKey) {
 
     const region = CONFIG.regions[regionKey];
     const reportUrl = region?.dataSources?.reportUrl;
+    const fallbackReportUrl = region?.dataSources?.reportFallbackUrl;
+    const urlsToTry = [reportUrl, fallbackReportUrl].filter(Boolean);
 
-    if (!reportUrl) {
+    if (!urlsToTry.length) {
         hideReportSection();
         return;
     }
@@ -108,34 +113,45 @@ async function showRegionReport(regionKey) {
     }
     container.innerHTML = '<p class="info-text">Loading the latest report...</p>';
 
-    try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000);
-        const response = await fetch(reportUrl, { signal: controller.signal });
-        clearTimeout(timeout);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const contentType = response.headers.get('content-type') || '';
-        if (!contentType.toLowerCase().includes('text/html')) {
-            throw new Error(`Unexpected content type: ${contentType}`);
-        }
-        const rawHtml = await response.text();
-        const sanitized = sanitizeReportHtml(rawHtml);
+    let lastError = null;
 
-        const iframe = document.createElement('iframe');
-        iframe.className = 'report-frame';
-        iframe.setAttribute('sandbox', 'allow-same-origin');
-        iframe.setAttribute('loading', 'lazy');
-        iframe.setAttribute('title', `${region.name} daily report`);
-        iframe.srcdoc = sanitized;
+    for (const url of urlsToTry) {
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000);
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeout);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const contentTypeHeader = response.headers.get('content-type') || '';
+            const contentType = contentTypeHeader.toLowerCase();
+            const mimeType = contentType.split(';')[0].trim() || '';
+            const isTextContent = ALLOWED_REPORT_CONTENT_TYPES.includes(mimeType);
+            if (!isTextContent) {
+                throw new Error(`Unexpected content type (MIME): ${mimeType || EMPTY_CONTENT_TYPE_LABEL}`);
+            }
+            const rawHtml = await response.text();
+            const sanitized = sanitizeReportHtml(rawHtml);
 
-        container.innerHTML = '';
-        container.appendChild(iframe);
-    } catch (error) {
-        console.error('Error loading daily report:', error);
-        container.innerHTML = '<p class="error-message">Unable to load the daily report right now.</p>';
+            const iframe = document.createElement('iframe');
+            iframe.className = 'report-frame';
+            iframe.setAttribute('sandbox', 'allow-same-origin');
+            iframe.setAttribute('loading', 'lazy');
+            iframe.setAttribute('title', `${region.name} daily report`);
+            iframe.srcdoc = sanitized;
+
+            container.innerHTML = '';
+            container.appendChild(iframe);
+            return;
+        } catch (error) {
+            lastError = error;
+            console.error(`Error loading daily report from ${url}:`, error);
+        }
     }
+
+    console.error('Error loading daily report:', lastError);
+    container.innerHTML = '<p class="error-message">Unable to load the daily report right now.</p>';
 }
 
 document.addEventListener('DOMContentLoaded', function() {
