@@ -62,12 +62,14 @@ const CONFIG = {
             zoom: 11,
             dataSources: {
                 geojson: 'data/barcelona-risk.geojson',
-                csv: 'data/barcelona-timeseries.csv',
-                geotiff: 'data/barcelona-risk.tif',
-                timeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/refs/heads/main/data/bcn_time_profile_data.json',
-                districtTimeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/refs/heads/main/data/bcn_district_means.json',
-                mosquitoAlertBCN: {
-                    enabled: true,
+                 csv: 'data/barcelona-timeseries.csv',
+                 geotiff: 'data/barcelona-risk.tif',
+                 timeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/refs/heads/main/data/bcn_time_profile_data.json',
+                 districtTimeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/refs/heads/main/data/bcn_district_means.json',
+                 reportUrl: 'https://labs.mosquitoalert.com/MosquitoAlertBCN/daily.html',
+                 reportFallbackUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertBCN/refs/heads/main/daily_report.html',
+                 mosquitoAlertBCN: {
+                     enabled: true,
                     baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/main/data/',
                     filePattern: 'vri{date}.tif',
                     description: 'Data from MosquitoAlert BCN - High-resolution vector risk index',
