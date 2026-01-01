@@ -625,6 +625,18 @@ footer {
     margin-top: 3rem;
 }
 
+footer a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+footer a:hover {
+    color: #dfe8f5;
+    text-decoration: underline;
+}
+
 /* Loading Spinner */
 .loading {
     display: inline-block;
