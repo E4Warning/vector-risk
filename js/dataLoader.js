@@ -44,14 +44,16 @@ class DataLoader {
             return await response.text();
         }
 
-        const textFallbackResponse = response.clone();
+        let textFallbackResponse = null;
 
         if (typeof DecompressionStream !== 'undefined' && response.body?.pipeThrough) {
             try {
-                const decompressedStream = response.body.pipeThrough(new DecompressionStream('gzip'));
+                const streamResponse = response.clone();
+                const decompressedStream = streamResponse.body.pipeThrough(new DecompressionStream('gzip'));
                 return await new Response(decompressedStream).text();
             } catch (err) {
                 console.warn('Gzip decompression via stream failed, trying alternative method:', err);
+                textFallbackResponse = response.clone();
             }
         }
 
@@ -62,10 +64,14 @@ class DataLoader {
             }
         } catch (err) {
             console.warn('Gzip decompression via pako failed:', err);
+            if (!textFallbackResponse) {
+                textFallbackResponse = response.clone();
+            }
         }
 
         try {
-            return await textFallbackResponse.text();
+            const fallback = textFallbackResponse || response.clone();
+            return await fallback.text();
         } catch (err) {
             throw new Error(`Failed to read gzip-compressed CSV from ${url}: ${err}`);
         }

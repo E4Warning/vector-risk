@@ -276,7 +276,6 @@ async function showRegion(regionKey) {
     }
 
     // Ensure layers reflect default visibility when switching maps
-    mapManager.removeObservationLayer();
     const supportsObservations = Boolean(
         region?.dataSources?.observationsUrl ||
         region?.dataSources?.mosquitoAlertES?.observationsUrl ||
