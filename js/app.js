@@ -92,7 +92,7 @@ async function showRegionReport(regionKey) {
 
     for (const url of reportUrls) {
         try {
-            const response = await fetch(url, { cache: 'no-store' });
+            const response = await fetch(url, { cache: 'no-cache' });
             if (!response.ok) {
                 throw new Error(`Failed to fetch report: ${response.status}`);
             }
