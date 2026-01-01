@@ -40,16 +40,36 @@ class DataLoader {
             response.headers.get('content-encoding') === 'gzip' ||
             (response.headers.get('content-type') || '').includes('gzip');
 
-        if (isGzip && typeof DecompressionStream !== 'undefined' && response.body?.pipeThrough) {
+        if (!isGzip) {
+            return await response.text();
+        }
+
+        const textFallbackResponse = response.clone();
+
+        if (typeof DecompressionStream !== 'undefined' && response.body?.pipeThrough) {
             try {
                 const decompressedStream = response.body.pipeThrough(new DecompressionStream('gzip'));
                 return await new Response(decompressedStream).text();
             } catch (err) {
-                console.warn('Gzip decompression failed, falling back to text():', err);
+                console.warn('Gzip decompression via stream failed, trying alternative method:', err);
             }
         }
 
-        return await response.text();
+        try {
+            const arrayBuffer = await response.arrayBuffer();
+            if (typeof pako !== 'undefined' && typeof pako.ungzip === 'function') {
+                return pako.ungzip(new Uint8Array(arrayBuffer), { to: 'string' });
+            }
+        } catch (err) {
+            console.warn('Gzip decompression via pako failed:', err);
+        }
+
+        try {
+            return await textFallbackResponse.text();
+        } catch (err) {
+            console.warn('Falling back to empty text after gzip failures:', err);
+            return '';
+        }
     }
 
     /**

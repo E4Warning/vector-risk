@@ -199,9 +199,11 @@ class MapManager {
      * @param {Object} options - Styling options
      */
     addObservationLayer(geojsonData, visible = true, options = {}) {
-        const color = options.color || '#ff7f00';
-        const radius = options.radius || 4;
-        const opacity = options.opacity !== undefined ? options.opacity : 0.8;
+        const fillColor = options.fillColor || options.color || '#ffd92f';
+        const strokeColor = options.strokeColor || '#000000';
+        const radius = options.radius || 6;
+        const strokeWidth = options.strokeWidth !== undefined ? options.strokeWidth : 1.25;
+        const opacity = options.opacity !== undefined ? options.opacity : 0.85;
 
         this.removeObservationLayer();
 
@@ -222,8 +224,10 @@ class MapManager {
                 source: this.observationSourceId,
                 paint: {
                     'circle-radius': radius,
-                    'circle-color': color,
-                    'circle-opacity': opacity
+                    'circle-color': fillColor,
+                    'circle-opacity': opacity,
+                    'circle-stroke-color': strokeColor,
+                    'circle-stroke-width': strokeWidth
                 },
                 layout: {
                     visibility: visible ? 'visible' : 'none'
@@ -237,9 +241,9 @@ class MapManager {
             this.layers.observations = L.geoJSON(geojsonData, {
                 pointToLayer: (_, latlng) => L.circleMarker(latlng, {
                     radius: radius,
-                    color: color,
-                    weight: 1,
-                    fillColor: color,
+                    color: strokeColor,
+                    weight: strokeWidth,
+                    fillColor: fillColor,
                     fillOpacity: opacity,
                     opacity: opacity
                 })

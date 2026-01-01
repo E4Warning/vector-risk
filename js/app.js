@@ -255,8 +255,30 @@ async function showRegion(regionKey) {
         return;
     }
     mapManager.currentRegion = regionKey;
+    const riskLayerCheckbox = document.getElementById('risk-layer');
     const observationsLayerCheckbox = document.getElementById('observations-layer');
     const observationsLabel = observationsLayerCheckbox ? observationsLayerCheckbox.closest('label') : null;
+    const rangeLayerCheckbox = document.getElementById('range-layer');
+
+    // Reset layer checkboxes to defaults when switching regions
+    if (riskLayerCheckbox) {
+        riskLayerCheckbox.checked = true;
+    }
+    if (observationsLayerCheckbox) {
+        observationsLayerCheckbox.checked = false;
+    }
+    if (rangeLayerCheckbox) {
+        rangeLayerCheckbox.checked = false;
+    }
+
+    // Ensure layers reflect default visibility when switching maps
+    if (mapManager?.removeObservationLayer) {
+        mapManager.removeObservationLayer();
+    }
+    if (mapManager?.toggleLayer) {
+        mapManager.toggleLayer('risk', true);
+        mapManager.toggleLayer('observations', false);
+    }
     const supportsObservations = Boolean(
         region?.dataSources?.observationsUrl ||
         region?.dataSources?.mosquitoAlertES?.observationsUrl ||
@@ -267,7 +289,7 @@ async function showRegion(regionKey) {
     }
     if (observationsLayerCheckbox) {
         observationsLayerCheckbox.disabled = !supportsObservations;
-        observationsLayerCheckbox.checked = supportsObservations;
+        observationsLayerCheckbox.checked = false;
     }
     if (observationsLabel) {
         observationsLabel.classList.toggle('disabled', !supportsObservations);
@@ -458,6 +480,11 @@ async function showRegion(regionKey) {
         if (supportsObservations) {
             await loadObservationOverlay(regionKey);
         }
+
+        if (mapManager?.toggleLayer) {
+            mapManager.toggleLayer('risk', riskLayerCheckbox ? riskLayerCheckbox.checked : true);
+            mapManager.toggleLayer('observations', observationsLayerCheckbox ? observationsLayerCheckbox.checked : false);
+        }
         
         // Create visualization
         await visualization.createRiskChart(regionKey);
@@ -524,7 +551,7 @@ async function loadObservationOverlay(regionKey) {
     }
 
     const checkbox = document.getElementById('observations-layer');
-    const visible = checkbox ? checkbox.checked : true;
+    const visible = checkbox ? checkbox.checked : false;
 
     try {
         const csvData = await dataLoader.loadCSV(observationsUrl);
@@ -560,9 +587,11 @@ async function loadObservationOverlay(regionKey) {
         };
 
         mapManager.addObservationLayer(geojson, visible, {
-            color: regionKey === 'barcelona' ? '#1f78b4' : '#ff7f00',
-            radius: regionKey === 'barcelona' ? 5 : 4,
-            opacity: 0.75
+            fillColor: '#ffd92f',
+            strokeColor: '#000000',
+            strokeWidth: 1.5,
+            radius: regionKey === 'barcelona' ? 7 : 6,
+            opacity: 0.85
         });
     } catch (error) {
         console.error('Failed to load observation overlay:', error);
