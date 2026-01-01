@@ -40,16 +40,41 @@ class DataLoader {
             response.headers.get('content-encoding') === 'gzip' ||
             (response.headers.get('content-type') || '').includes('gzip');
 
-        if (isGzip && typeof DecompressionStream !== 'undefined' && response.body?.pipeThrough) {
+        if (!isGzip) {
+            return await response.text();
+        }
+
+        let textFallbackResponse = null;
+
+        if (typeof DecompressionStream !== 'undefined' && response.body?.pipeThrough) {
             try {
-                const decompressedStream = response.body.pipeThrough(new DecompressionStream('gzip'));
+                const streamResponse = response.clone();
+                const decompressedStream = streamResponse.body.pipeThrough(new DecompressionStream('gzip'));
                 return await new Response(decompressedStream).text();
             } catch (err) {
-                console.warn('Gzip decompression failed, falling back to text():', err);
+                console.warn('Gzip decompression via stream failed, trying alternative method:', err);
+                textFallbackResponse = response.clone();
             }
         }
 
-        return await response.text();
+        try {
+            if (!textFallbackResponse) {
+                textFallbackResponse = response.clone();
+            }
+            const bufferResponse = textFallbackResponse || response;
+            const arrayBuffer = await bufferResponse.arrayBuffer();
+            if (typeof pako !== 'undefined' && typeof pako.ungzip === 'function') {
+                return pako.ungzip(new Uint8Array(arrayBuffer), { to: 'string' });
+            }
+        } catch (err) {
+            console.warn('Gzip decompression via pako failed:', err);
+        }
+
+        try {
+            return await textFallbackResponse.text();
+        } catch (err) {
+            throw new Error(`Failed to read gzip-compressed CSV from ${url}: ${err}`);
+        }
     }
 
     /**
