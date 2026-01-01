@@ -19,7 +19,7 @@ class DataLoader {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const text = await response.text();
+            const text = await this.getCSVText(response, url);
             const data = this.parseCSV(text);
             this.cache.set(url, data);
             return data;
@@ -27,6 +27,29 @@ class DataLoader {
             console.warn(`Could not load CSV from ${url}:`, error);
             return this.generateSampleCSVData();
         }
+    }
+
+    /**
+     * Get CSV text, handling gzip-compressed responses when needed
+     * @param {Response} response - Fetch response object
+     * @param {string} url - Original URL (used to detect .gz files)
+     * @returns {Promise<string>} CSV text
+     */
+    async getCSVText(response, url) {
+        const isGzip = url.endsWith('.gz') ||
+            response.headers.get('content-encoding') === 'gzip' ||
+            (response.headers.get('content-type') || '').includes('gzip');
+
+        if (isGzip && typeof DecompressionStream !== 'undefined' && response.body?.pipeThrough) {
+            try {
+                const decompressedStream = response.body.pipeThrough(new DecompressionStream('gzip'));
+                return await new Response(decompressedStream).text();
+            } catch (err) {
+                console.warn('Gzip decompression failed, falling back to text():', err);
+            }
+        }
+
+        return await response.text();
     }
 
     /**

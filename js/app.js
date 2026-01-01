@@ -255,6 +255,23 @@ async function showRegion(regionKey) {
         return;
     }
     mapManager.currentRegion = regionKey;
+    const observationsLayerCheckbox = document.getElementById('observations-layer');
+    const observationsLabel = observationsLayerCheckbox ? observationsLayerCheckbox.closest('label') : null;
+    const supportsObservations = Boolean(
+        region?.dataSources?.observationsUrl ||
+        region?.dataSources?.mosquitoAlertES?.observationsUrl ||
+        region?.dataSources?.mosquitoAlertBCN?.observationsUrl
+    );
+    if (!supportsObservations && mapManager?.removeObservationLayer) {
+        mapManager.removeObservationLayer();
+    }
+    if (observationsLayerCheckbox) {
+        observationsLayerCheckbox.disabled = !supportsObservations;
+        observationsLayerCheckbox.checked = supportsObservations;
+    }
+    if (observationsLabel) {
+        observationsLabel.classList.toggle('disabled', !supportsObservations);
+    }
     const selectedModel = getSelectedModel();
     const modelSelector = document.getElementById('model-selector');
     if (modelSelector) {
@@ -437,6 +454,10 @@ async function showRegion(regionKey) {
         else {
             await mapManager.loadRegion(regionKey);
         }
+
+        if (supportsObservations) {
+            await loadObservationOverlay(regionKey);
+        }
         
         // Create visualization
         await visualization.createRiskChart(regionKey);
@@ -475,6 +496,78 @@ document.addEventListener('visibilitychange', function() {
         // Optionally pause animations or cleanup
     }
 });
+
+/**
+ * Load and display MosquitoAlert observation overlays for supported regions
+ * @param {string} regionKey - Region identifier
+ */
+async function loadObservationOverlay(regionKey) {
+    const region = CONFIG.regions[regionKey];
+    if (!region) return;
+
+    const observationsUrl = region?.dataSources?.observationsUrl ||
+        region?.dataSources?.mosquitoAlertES?.observationsUrl ||
+        region?.dataSources?.mosquitoAlertBCN?.observationsUrl;
+
+    if (!observationsUrl) {
+        mapManager.removeObservationLayer();
+        return;
+    }
+
+    if (mapManager.mbMap && !mapManager.mbMap.isStyleLoaded()) {
+        mapManager.mbMap.once('load', () => loadObservationOverlay(regionKey));
+        return;
+    }
+
+    if (!mapManager.map && !mapManager.mbMap) {
+        return;
+    }
+
+    const checkbox = document.getElementById('observations-layer');
+    const visible = checkbox ? checkbox.checked : true;
+
+    try {
+        const csvData = await dataLoader.loadCSV(observationsUrl);
+        const features = (csvData || []).map(row => {
+            const lat = parseFloat(row.lat ?? row.Latitude ?? row.latitude);
+            const lon = parseFloat(row.lon ?? row.Longitude ?? row.longitude);
+            const presenceRaw = row.presence ?? row.PRESENCE ?? row.Presence;
+            const date = row.date || row.Date || '';
+            const isPresent = typeof presenceRaw === 'string' ?
+                presenceRaw.toLowerCase() === 'true' :
+                Boolean(presenceRaw);
+
+            if (!Number.isFinite(lat) || !Number.isFinite(lon) || !isPresent) {
+                return null;
+            }
+
+            return {
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [lon, lat]
+                },
+                properties: {
+                    presence: isPresent,
+                    date: date
+                }
+            };
+        }).filter(Boolean);
+
+        const geojson = {
+            type: 'FeatureCollection',
+            features
+        };
+
+        mapManager.addObservationLayer(geojson, visible, {
+            color: regionKey === 'barcelona' ? '#1f78b4' : '#ff7f00',
+            radius: regionKey === 'barcelona' ? 5 : 4,
+            opacity: 0.75
+        });
+    } catch (error) {
+        console.error('Failed to load observation overlay:', error);
+    }
+}
 
 /**
  * Load MosquitoAlert Spain data for a specific date
