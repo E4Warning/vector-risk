@@ -16,19 +16,20 @@ const CONFIG = {
                  mosquitoAlertES: {
                      enabled: true,
                      baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/',
-                     filePattern: 'muni_preds_{date}.json',
-                    description: 'Data from MosquitoAlertES - Citizen science mosquito surveillance',
-                    municipalityBoundariesLowRes: 'mapbox://johnrbpalmer.4bfv6pbn',
-                     municipalityBoundariesHighRes: 'mapbox://johnrbpalmer.48qdct4s',
-                     municipalitySourceLayerLowRes: 'spain_municipality_boundaries-7m7u82',
-                     municipalitySourceLayerHighRes: 'spain_municipality_boundaries-dzvpt0',
-                     mapboxAccessToken: 'pk.eyJ1Ijoiam9obnJicGFsbWVyIiwiYSI6ImFRTXhoaHcifQ.UwIptK0Is5dJdN8q-1djww',
-                     maxVRI: 0.3,
-                     // File pattern for 1km grid GeoTIFFs from MosquitoAlertES repository
-                     gridFilePattern: 'a004_MA_predictions_all_spain_aemet_weather_forecast_pred_raster_brms_MC10_1000_{date}.tiff',
-                     gridMaxVRI: 0.3
-                 }
-             },
+                      filePattern: 'muni_preds_{date}.json',
+                     description: 'Data from MosquitoAlertES - Citizen science mosquito surveillance',
+                     municipalityBoundariesLowRes: 'mapbox://johnrbpalmer.4bfv6pbn',
+                      municipalityBoundariesHighRes: 'mapbox://johnrbpalmer.48qdct4s',
+                      municipalitySourceLayerLowRes: 'spain_municipality_boundaries-7m7u82',
+                      municipalitySourceLayerHighRes: 'spain_municipality_boundaries-dzvpt0',
+                      mapboxAccessToken: 'pk.eyJ1Ijoiam9obnJicGFsbWVyIiwiYSI6ImFRTXhoaHcifQ.UwIptK0Is5dJdN8q-1djww',
+                      maxVRI: 0.3,
+                      observationsUrl: 'https://github.com/Mosquito-Alert/MosquitoAlertES/raw/refs/heads/main/data/model_training_reports_lonlat.csv.gz',
+                      // File pattern for 1km grid GeoTIFFs from MosquitoAlertES repository
+                      gridFilePattern: 'a004_MA_predictions_all_spain_aemet_weather_forecast_pred_raster_brms_MC10_1000_{date}.tiff',
+                      gridMaxVRI: 0.3
+                  }
+              },
              comingSoon: false
          },
         brazil: {
@@ -71,15 +72,16 @@ const CONFIG = {
                  mosquitoAlertBCN: {
                      enabled: true,
                     baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/main/data/',
-                    filePattern: 'vri{date}.tif',
-                    description: 'Data from MosquitoAlert BCN - High-resolution vector risk index',
-                    mapboxAccessToken: 'pk.eyJ1Ijoiam9obnJicGFsbWVyIiwiYSI6ImFRTXhoaHcifQ.UwIptK0Is5dJdN8q-1djww',
-                    mapboxStyleId: 'johnrbpalmer/cklcc4q673pe517k4n5co81sn',
-                    maxVRI: 0.5
-                }
-            },
-            comingSoon: false
-        },
+                     filePattern: 'vri{date}.tif',
+                     description: 'Data from MosquitoAlert BCN - High-resolution vector risk index',
+                     mapboxAccessToken: 'pk.eyJ1Ijoiam9obnJicGFsbWVyIiwiYSI6ImFRTXhoaHcifQ.UwIptK0Is5dJdN8q-1djww',
+                     mapboxStyleId: 'johnrbpalmer/cklcc4q673pe517k4n5co81sn',
+                     maxVRI: 0.5,
+                     observationsUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/refs/heads/main/data/mosquito_alert_reports_used_in_model.csv'
+                 }
+             },
+             comingSoon: false
+         },
         'rio-de-janeiro': {
             name: 'Rio de Janeiro',
             type: 'city',

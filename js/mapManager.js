@@ -13,6 +13,8 @@ class MapManager {
             geotiff: null
         };
         this.currentRegion = null;
+        this.observationSourceId = 'observations-source';
+        this.observationLayerId = 'observations-layer';
     }
 
     /**
@@ -21,6 +23,10 @@ class MapManager {
     initMap() {
         if (this.map) {
             this.map.remove();
+        }
+        if (this.mbMap) {
+            this.mbMap.remove();
+            this.mbMap = null;
         }
 
         this.map = L.map('map').setView(CONFIG.defaultCenter, CONFIG.defaultZoom);
@@ -187,6 +193,65 @@ class MapManager {
     }
 
     /**
+     * Add observation layer (points) to the current map
+     * @param {Object} geojsonData - GeoJSON FeatureCollection
+     * @param {boolean} visible - Whether the layer should be visible
+     * @param {Object} options - Styling options
+     */
+    addObservationLayer(geojsonData, visible = true, options = {}) {
+        const color = options.color || '#ff7f00';
+        const radius = options.radius || 4;
+        const opacity = options.opacity !== undefined ? options.opacity : 0.8;
+
+        this.removeObservationLayer();
+
+        if (this.mbMap) {
+            if (!this.mbMap.isStyleLoaded()) {
+                this.mbMap.once('load', () => this.addObservationLayer(geojsonData, visible, options));
+                return;
+            }
+
+            this.mbMap.addSource(this.observationSourceId, {
+                type: 'geojson',
+                data: geojsonData
+            });
+
+            this.mbMap.addLayer({
+                id: this.observationLayerId,
+                type: 'circle',
+                source: this.observationSourceId,
+                paint: {
+                    'circle-radius': radius,
+                    'circle-color': color,
+                    'circle-opacity': opacity
+                },
+                layout: {
+                    visibility: visible ? 'visible' : 'none'
+                }
+            });
+            this.layers.observations = geojsonData;
+            return;
+        }
+
+        if (this.map) {
+            this.layers.observations = L.geoJSON(geojsonData, {
+                pointToLayer: (_, latlng) => L.circleMarker(latlng, {
+                    radius: radius,
+                    color: color,
+                    weight: 1,
+                    fillColor: color,
+                    fillOpacity: opacity,
+                    opacity: opacity
+                })
+            });
+
+            if (visible) {
+                this.layers.observations.addTo(this.map);
+            }
+        }
+    }
+
+    /**
      * Add GeoTIFF layer to the map
      * @param {Object} georaster - Parsed GeoTIFF data
      */
@@ -232,6 +297,26 @@ class MapManager {
     }
 
     /**
+     * Remove observation layer and source if present
+     */
+    removeObservationLayer() {
+        if (this.mbMap) {
+            if (this.mbMap.getLayer(this.observationLayerId)) {
+                this.mbMap.removeLayer(this.observationLayerId);
+            }
+            if (this.mbMap.getSource(this.observationSourceId)) {
+                this.mbMap.removeSource(this.observationSourceId);
+            }
+        }
+
+        if (this.layers.observations && this.map) {
+            this.map.removeLayer(this.layers.observations);
+        }
+
+        this.layers.observations = null;
+    }
+
+    /**
      * Get color for risk level
      * @param {string} riskLevel - Risk level
      * @returns {string} Color code
@@ -246,11 +331,25 @@ class MapManager {
      */
     clearLayers() {
         Object.keys(this.layers).forEach(key => {
-            if (this.layers[key]) {
+            if (this.layers[key] && this.map) {
                 this.map.removeLayer(this.layers[key]);
-                this.layers[key] = null;
             }
+            this.layers[key] = null;
         });
+        this.removeObservationLayer();
+
+        if (this.mbMap) {
+            ['muni-high-res', 'muni-low-res', this.observationLayerId].forEach(layerId => {
+                if (this.mbMap.getLayer(layerId)) {
+                    this.mbMap.removeLayer(layerId);
+                }
+            });
+            ['municipalities-low-res', 'municipalities-high-res', this.observationSourceId].forEach(sourceId => {
+                if (this.mbMap.getSource(sourceId)) {
+                    this.mbMap.removeSource(sourceId);
+                }
+            });
+        }
     }
 
     /**
@@ -289,6 +388,25 @@ class MapManager {
                         }
                     }
                 });
+            }
+            return;
+        }
+
+        if (layerName === 'observations') {
+            if (this.mbMap && this.mbMap.getLayer(this.observationLayerId)) {
+                try {
+                    this.mbMap.setLayoutProperty(this.observationLayerId, 'visibility', visible ? 'visible' : 'none');
+                } catch (e) {
+                    console.warn('Failed to toggle Mapbox observation layer:', e);
+                }
+            }
+
+            if (this.layers.observations && this.map) {
+                if (visible) {
+                    this.map.addLayer(this.layers.observations);
+                } else {
+                    this.map.removeLayer(this.layers.observations);
+                }
             }
             return;
         }
@@ -345,6 +463,7 @@ class MapManager {
      * Destroy the map instance
      */
     destroy() {
+        this.removeObservationLayer();
         if (this.map) {
             this.map.remove();
             this.map = null;
