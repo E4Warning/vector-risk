@@ -13,6 +13,18 @@ function escapeHtml(str) {
 const reportLinkHandlers = new WeakMap();
 
 /**
+ * Sanitize HTML by removing script and iframe elements
+ * @param {string} html
+ * @returns {string}
+ */
+function sanitizeHtml(html) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    doc.querySelectorAll('script, iframe').forEach(el => el.remove());
+    return doc.body.innerHTML;
+}
+
+/**
  * Get the currently selected model
  * @returns {string}
  */
@@ -62,9 +74,12 @@ async function showRegionReport(regionKey) {
     }
 
     const region = CONFIG.regions[regionKey];
-    const hasReport = Boolean(region?.dataSources?.reportUrl || region?.dataSources?.reportFallbackUrl);
+    const reportUrls = [
+        region?.dataSources?.reportUrl,
+        region?.dataSources?.reportFallbackUrl
+    ].filter(Boolean);
 
-    if (!hasReport) {
+    if (reportUrls.length === 0) {
         hideReportSection();
         return;
     }
@@ -73,7 +88,23 @@ async function showRegionReport(regionKey) {
     if (title) {
         title.textContent = `${region.name} Daily Report`;
     }
-    container.innerHTML = '<p class="info-text">Coming Soon</p>';
+    container.innerHTML = '<p class="info-text">Loading report...</p>';
+
+    for (const url of reportUrls) {
+        try {
+            const response = await fetch(url, { cache: 'no-cache' });
+            if (!response.ok) {
+                throw new Error(`Failed to fetch report: ${response.status}`);
+            }
+            const html = await response.text();
+            container.innerHTML = sanitizeHtml(html);
+            return;
+        } catch (error) {
+            console.error('Error loading report from', url, error);
+        }
+    }
+
+    container.innerHTML = '<p class="error-message">Unable to load the daily report right now. Please try again later.</p>';
 }
 
 document.addEventListener('DOMContentLoaded', function() {

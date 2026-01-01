@@ -595,6 +595,23 @@ main {
     background: white;
 }
 
+.report-container img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+}
+
+.report-container figure {
+    margin: 1rem 0;
+}
+
+.report-container figcaption {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #555;
+}
+
 /* About Section */
 #about-section h2 {
     color: #333;
