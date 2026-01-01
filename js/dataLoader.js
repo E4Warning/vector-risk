@@ -58,20 +58,20 @@ class DataLoader {
         }
 
         try {
-            const arrayBuffer = await response.arrayBuffer();
+            if (!textFallbackResponse) {
+                textFallbackResponse = response.clone();
+            }
+            const bufferResponse = textFallbackResponse || response;
+            const arrayBuffer = await bufferResponse.arrayBuffer();
             if (typeof pako !== 'undefined' && typeof pako.ungzip === 'function') {
                 return pako.ungzip(new Uint8Array(arrayBuffer), { to: 'string' });
             }
         } catch (err) {
             console.warn('Gzip decompression via pako failed:', err);
-            if (!textFallbackResponse) {
-                textFallbackResponse = response.clone();
-            }
         }
 
         try {
-            const fallback = textFallbackResponse || response.clone();
-            return await fallback.text();
+            return await textFallbackResponse.text();
         } catch (err) {
             throw new Error(`Failed to read gzip-compressed CSV from ${url}: ${err}`);
         }
