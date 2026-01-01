@@ -67,8 +67,7 @@ class DataLoader {
         try {
             return await textFallbackResponse.text();
         } catch (err) {
-            console.warn('Falling back to empty text after gzip failures:', err);
-            return '';
+            throw new Error(`Failed to read gzip-compressed CSV from ${url}: ${err}`);
         }
     }
 
