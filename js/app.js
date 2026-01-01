@@ -249,6 +249,10 @@ function showAbout() {
  * @param {string} regionKey - Key for the region
  */
 async function showRegion(regionKey) {
+    if (!mapManager) {
+        console.error('Map manager not initialized');
+        return;
+    }
     const region = CONFIG.regions[regionKey];
     if (!region) {
         console.error(`Region ${regionKey} not found`);
@@ -272,19 +276,13 @@ async function showRegion(regionKey) {
     }
 
     // Ensure layers reflect default visibility when switching maps
-    if (mapManager?.removeObservationLayer) {
-        mapManager.removeObservationLayer();
-    }
-    if (mapManager?.toggleLayer) {
-        mapManager.toggleLayer('risk', true);
-        mapManager.toggleLayer('observations', false);
-    }
+    mapManager.removeObservationLayer();
     const supportsObservations = Boolean(
         region?.dataSources?.observationsUrl ||
         region?.dataSources?.mosquitoAlertES?.observationsUrl ||
         region?.dataSources?.mosquitoAlertBCN?.observationsUrl
     );
-    if (!supportsObservations && mapManager?.removeObservationLayer) {
+    if (!supportsObservations) {
         mapManager.removeObservationLayer();
     }
     if (observationsLayerCheckbox) {
@@ -481,10 +479,8 @@ async function showRegion(regionKey) {
             await loadObservationOverlay(regionKey);
         }
 
-        if (mapManager?.toggleLayer) {
-            mapManager.toggleLayer('risk', riskLayerCheckbox ? riskLayerCheckbox.checked : true);
-            mapManager.toggleLayer('observations', observationsLayerCheckbox ? observationsLayerCheckbox.checked : false);
-        }
+        mapManager.toggleLayer('risk', riskLayerCheckbox ? riskLayerCheckbox.checked : true);
+        mapManager.toggleLayer('observations', observationsLayerCheckbox ? observationsLayerCheckbox.checked : false);
         
         // Create visualization
         await visualization.createRiskChart(regionKey);
