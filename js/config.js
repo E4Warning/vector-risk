@@ -67,7 +67,7 @@ const CONFIG = {
                  geotiff: 'data/barcelona-risk.tif',
                  timeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/refs/heads/main/data/bcn_time_profile_data.json',
                  districtTimeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/bcn/refs/heads/main/data/bcn_district_means.json',
-                 reportUrl: 'https://labs.mosquitoalert.com/MosquitoAlertBCN/daily.html',
+                 reportUrl: 'data/barcelona-daily-report.html',
                  reportFallbackUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertBCN/refs/heads/main/daily_report.html',
                  mosquitoAlertBCN: {
                      enabled: true,
