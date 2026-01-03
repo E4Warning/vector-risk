@@ -236,7 +236,8 @@ function setupLayerControls() {
             const datePicker = document.getElementById('data-date-picker');
             const dateToLoad = datePicker && datePicker.value ? datePicker.value : new Date().toISOString().split('T')[0];
             await loadSpainMosquitoAlertData(dateToLoad, this.value);
-            if (mapManager.currentRegion === 'spain' && CONFIG.regions.spain?.dataSources?.mosquitoAlertES?.observationsUrl) {
+            // For grid model, load observations here (municipalities model loads in map's load handler)
+            if (this.value === 'mosquito-alert-grid' && CONFIG.regions.spain?.dataSources?.mosquitoAlertES?.observationsUrl) {
                 await loadObservationOverlay('spain');
             }
         });
@@ -469,8 +470,10 @@ async function showRegion(regionKey) {
                             await loadObservationOverlay('barcelona');
                         }
                     } else if (regionKey === 'spain') {
-                        await loadSpainMosquitoAlertData(this.value, getSelectedModel());
-                        if (CONFIG.regions.spain?.dataSources?.mosquitoAlertES?.observationsUrl) {
+                        const selectedModel = getSelectedModel();
+                        await loadSpainMosquitoAlertData(this.value, selectedModel);
+                        // For grid model, load observations here (municipalities model loads in map's load handler)
+                        if (selectedModel === 'mosquito-alert-grid' && CONFIG.regions.spain?.dataSources?.mosquitoAlertES?.observationsUrl) {
                             await loadObservationOverlay('spain');
                         }
                     }
@@ -518,7 +521,15 @@ async function showRegion(regionKey) {
         }
 
         if (supportsObservations) {
-            await loadObservationOverlay(regionKey);
+            // For Spain with municipalities model, observations are loaded in the Mapbox map's load handler
+            // For other regions and Spain grid model, load observations here
+            const isSpainMunicipalities = regionKey === 'spain' && 
+                                         region.dataSources.mosquitoAlertES && 
+                                         region.dataSources.mosquitoAlertES.enabled && 
+                                         selectedModel === 'mosquito-alert-municipalities';
+            if (!isSpainMunicipalities) {
+                await loadObservationOverlay(regionKey);
+            }
         }
 
         mapManager.toggleLayer('risk', riskLayerCheckbox ? riskLayerCheckbox.checked : true);
@@ -851,6 +862,13 @@ async function loadSpainMosquitoAlertData(date, modelSelection = 'mosquito-alert
                         <p><strong>Municipalities:</strong> ${muniData.length}</p>
                         <p><strong>Avg VRI:</strong> ${avgRisk.toFixed(3)}</p>
                     `;
+                }
+                
+                // Load observations after map is ready
+                if (CONFIG.regions.spain?.dataSources?.mosquitoAlertES?.observationsUrl) {
+                    loadObservationOverlay('spain').catch(err => {
+                        console.error('Failed to load observations:', err);
+                    });
                 }
             });
         } else {
