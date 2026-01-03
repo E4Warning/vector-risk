@@ -236,6 +236,9 @@ function setupLayerControls() {
             const datePicker = document.getElementById('data-date-picker');
             const dateToLoad = datePicker && datePicker.value ? datePicker.value : new Date().toISOString().split('T')[0];
             await loadSpainMosquitoAlertData(dateToLoad, this.value);
+            if (mapManager.currentRegion === 'spain' && CONFIG.regions.spain?.dataSources?.mosquitoAlertES?.observationsUrl) {
+                await loadObservationOverlay('spain');
+            }
         });
     }
 }
@@ -456,11 +459,20 @@ async function showRegion(regionKey) {
                 datePicker.parentNode.replaceChild(newDatePicker, datePicker);
                 
                 // Add event listener for date changes
-                newDatePicker.addEventListener('change', function() {
+                newDatePicker.addEventListener('change', async function() {
+                    if (mapManager.currentRegion !== regionKey) {
+                        return;
+                    }
                     if (regionKey === 'barcelona') {
-                        loadBarcelonaMosquitoAlertData(this.value);
+                        await loadBarcelonaMosquitoAlertData(this.value);
+                        if (CONFIG.regions.barcelona?.dataSources?.mosquitoAlertBCN?.observationsUrl) {
+                            await loadObservationOverlay('barcelona');
+                        }
                     } else if (regionKey === 'spain') {
-                        loadSpainMosquitoAlertData(this.value, getSelectedModel());
+                        await loadSpainMosquitoAlertData(this.value, getSelectedModel());
+                        if (CONFIG.regions.spain?.dataSources?.mosquitoAlertES?.observationsUrl) {
+                            await loadObservationOverlay('spain');
+                        }
                     }
                 });
                 
@@ -673,6 +685,10 @@ async function loadSpainMosquitoAlertData(date, modelSelection = 'mosquito-alert
         
         // If we have Mapbox GL JS available and mapbox token, use Mapbox GL
         if (typeof mapboxgl !== 'undefined' && config.mapboxAccessToken) {
+            if (mapManager.mbMap) {
+                mapManager.mbMap.remove();
+                mapManager.mbMap = null;
+            }
             // Remove existing Leaflet map if present
             if (mapManager.map) {
                 mapManager.map.remove();
