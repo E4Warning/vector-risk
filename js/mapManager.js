@@ -222,7 +222,7 @@ class MapManager {
             // Use data-driven styling for presence/absence coloring
             const colorExpression = [
                 'case',
-                ['get', 'presence'],
+                ['==', ['get', 'presence'], true],
                 fillColor,
                 fillColorAbsence
             ];
