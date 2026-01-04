@@ -906,8 +906,6 @@ async function loadSpainMosquitoAlertData(date, modelSelection = 'mosquito-alert
                         observationsLoaded = Array.isArray(geojson?.features) && geojson.features.length > 0;
                     } else if (Array.isArray(obsLayer.features)) {
                         observationsLoaded = obsLayer.features.length > 0;
-                    } else {
-                        observationsLoaded = true;
                     }
                 }
             }
