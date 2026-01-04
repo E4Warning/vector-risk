@@ -899,6 +899,7 @@ async function loadSpainMosquitoAlertData(date, modelSelection = 'mosquito-alert
             setBasemapSelectorAvailability(false, 'Basemap selection available (fallback view)');
             if (CONFIG.regions.spain?.dataSources?.mosquitoAlertES?.observationsUrl) {
                 await loadObservationOverlay('spain');
+                await Promise.resolve(); // ensure layer is attached after async work
                 const obsLayer = mapManager.layers.observations;
                 if (obsLayer) {
                     if (typeof obsLayer.toGeoJSON === 'function') {
@@ -913,10 +914,11 @@ async function loadSpainMosquitoAlertData(date, modelSelection = 'mosquito-alert
             console.error('Fallback loading Spain observations failed:', fallbackError);
         }
         if (mapStats) {
-            mapStats.innerHTML = '<p class="error-message">Error loading MosquitoAlertES data. The data for this date may not be available yet.</p>';
+            let html = '<p class="error-message">Error loading MosquitoAlertES data. The data for this date may not be available yet.</p>';
             if (observationsLoaded) {
-                mapStats.innerHTML += '<p class="info-message">Showing training observations while model data is unavailable.</p>';
+                html += '<p class="info-message">Showing training observations while model data is unavailable.</p>';
             }
+            mapStats.innerHTML = html;
         }
     }
 }
