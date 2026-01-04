@@ -321,6 +321,23 @@ class MapManager {
     }
 
     /**
+     * Get feature count for the current observations layer
+     * @returns {number}
+     */
+    getObservationFeatureCount() {
+        const layer = this.layers.observations;
+        if (!layer) return 0;
+        if (typeof layer.toGeoJSON === 'function') {
+            const geojson = layer.toGeoJSON();
+            return Array.isArray(geojson?.features) ? geojson.features.length : 0;
+        }
+        if (Array.isArray(layer.features)) {
+            return layer.features.length;
+        }
+        return 0;
+    }
+
+    /**
      * Get color for risk level
      * @param {string} riskLevel - Risk level
      * @returns {string} Color code
