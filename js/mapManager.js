@@ -249,7 +249,7 @@ class MapManager {
         if (this.map) {
             this.layers.observations = L.geoJSON(geojsonData, {
                 pointToLayer: (feature, latlng) => {
-                    const isPresent = feature.properties?.presence;
+                    const isPresent = feature.properties?.presence === true;
                     const color = isPresent ? fillColor : fillColorAbsence;
                     return L.circleMarker(latlng, {
                         radius: radius,
