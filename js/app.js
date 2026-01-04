@@ -613,7 +613,8 @@ async function loadObservationOverlay(regionKey) {
                 presenceRaw.toLowerCase() === 'true' :
                 Boolean(presenceRaw);
 
-            if (!Number.isFinite(lat) || !Number.isFinite(lon) || !isPresent) {
+            // Only filter out invalid coordinates, not based on presence
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
                 return null;
             }
 
@@ -636,7 +637,8 @@ async function loadObservationOverlay(regionKey) {
         };
 
         mapManager.addObservationLayer(geojson, visible, {
-            fillColor: '#ffd92f',
+            fillColor: '#ffd92f',           // Yellow for presence points
+            fillColorAbsence: '#a6cee3',    // Light blue for absence points
             strokeColor: '#000000',
             strokeWidth: 1.5,
             radius: regionKey === 'barcelona' ? 7 : 6,

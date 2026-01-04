@@ -200,6 +200,7 @@ class MapManager {
      */
     addObservationLayer(geojsonData, visible = true, options = {}) {
         const fillColor = options.fillColor || options.color || '#ffd92f';
+        const fillColorAbsence = options.fillColorAbsence || '#a6cee3';
         const strokeColor = options.strokeColor || '#000000';
         const radius = options.radius || 6;
         const strokeWidth = options.strokeWidth !== undefined ? options.strokeWidth : 1.25;
@@ -218,13 +219,21 @@ class MapManager {
                 data: geojsonData
             });
 
+            // Use data-driven styling for presence/absence coloring
+            const colorExpression = [
+                'case',
+                ['==', ['get', 'presence'], true],
+                fillColor,
+                fillColorAbsence
+            ];
+
             this.mbMap.addLayer({
                 id: this.observationLayerId,
                 type: 'circle',
                 source: this.observationSourceId,
                 paint: {
                     'circle-radius': radius,
-                    'circle-color': fillColor,
+                    'circle-color': colorExpression,
                     'circle-opacity': opacity,
                     'circle-stroke-color': strokeColor,
                     'circle-stroke-width': strokeWidth
@@ -239,14 +248,18 @@ class MapManager {
 
         if (this.map) {
             this.layers.observations = L.geoJSON(geojsonData, {
-                pointToLayer: (_, latlng) => L.circleMarker(latlng, {
-                    radius: radius,
-                    color: strokeColor,
-                    weight: strokeWidth,
-                    fillColor: fillColor,
-                    fillOpacity: opacity,
-                    opacity: opacity
-                })
+                pointToLayer: (feature, latlng) => {
+                    const isPresent = feature.properties?.presence === true;
+                    const color = isPresent ? fillColor : fillColorAbsence;
+                    return L.circleMarker(latlng, {
+                        radius: radius,
+                        color: strokeColor,
+                        weight: strokeWidth,
+                        fillColor: color,
+                        fillOpacity: opacity,
+                        opacity: opacity
+                    });
+                }
             });
 
             if (visible) {
