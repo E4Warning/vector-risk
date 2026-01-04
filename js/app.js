@@ -887,8 +887,34 @@ async function loadSpainMosquitoAlertData(date, modelSelection = 'mosquito-alert
     } catch (error) {
         console.error('Error loading MosquitoAlertES data:', error);
         const mapStats = document.getElementById('map-stats');
+        let observationsLoaded = false;
+        try {
+            // Fallback to Leaflet view so training observations can still be shown
+            if (mapManager.mbMap) {
+                mapManager.mbMap.remove();
+                mapManager.mbMap = null;
+            }
+            mapManager.initMap();
+            mapManager.map.setView(region.center, region.zoom);
+            setBasemapSelectorAvailability(false, 'Basemap selection available (fallback view)');
+            if (CONFIG.regions.spain?.dataSources?.mosquitoAlertES?.observationsUrl) {
+                await loadObservationOverlay('spain');
+                let featureCount = mapManager.getObservationFeatureCount();
+                if (!featureCount && mapManager.layers.observations) {
+                    await new Promise(requestAnimationFrame);
+                    featureCount = mapManager.getObservationFeatureCount();
+                }
+                observationsLoaded = featureCount > 0;
+            }
+        } catch (fallbackError) {
+            console.error('Fallback loading Spain observations failed:', fallbackError);
+        }
         if (mapStats) {
-            mapStats.innerHTML = '<p class="error-message">Error loading MosquitoAlertES data. The data for this date may not be available yet.</p>';
+            let html = '<p class="error-message">Error loading MosquitoAlertES data. The data for this date may not be available yet.</p>';
+            if (observationsLoaded) {
+                html += '<p class="info-message">Showing training observations while model data is unavailable.</p>';
+            }
+            mapStats.innerHTML = html;
         }
     }
 }
