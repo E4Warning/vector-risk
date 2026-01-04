@@ -899,16 +899,18 @@ async function loadSpainMosquitoAlertData(date, modelSelection = 'mosquito-alert
             setBasemapSelectorAvailability(false, 'Basemap selection available (fallback view)');
             if (CONFIG.regions.spain?.dataSources?.mosquitoAlertES?.observationsUrl) {
                 await loadObservationOverlay('spain');
-                await Promise.resolve(); // ensure layer is attached after async work
                 const obsLayer = mapManager.layers.observations;
-                if (obsLayer) {
-                    if (typeof obsLayer.toGeoJSON === 'function') {
+                const featureCount = (() => {
+                    if (obsLayer && typeof obsLayer.toGeoJSON === 'function') {
                         const geojson = obsLayer.toGeoJSON();
-                        observationsLoaded = Array.isArray(geojson?.features) && geojson.features.length > 0;
-                    } else if (Array.isArray(obsLayer.features)) {
-                        observationsLoaded = obsLayer.features.length > 0;
+                        return Array.isArray(geojson?.features) ? geojson.features.length : 0;
                     }
-                }
+                    if (obsLayer && Array.isArray(obsLayer.features)) {
+                        return obsLayer.features.length;
+                    }
+                    return 0;
+                })();
+                observationsLoaded = featureCount > 0;
             }
         } catch (fallbackError) {
             console.error('Fallback loading Spain observations failed:', fallbackError);
