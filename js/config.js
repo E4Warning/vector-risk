@@ -13,22 +13,22 @@ const CONFIG = {
                 timeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/time_profile_country.json',
                 ccaaTimeseries: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/time_profile_ccaas.json',
                 reportUrl: 'data/spain-daily-report.html',
-                mosquitoAlertES: {
-                    enabled: true,
-                    baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/',
-                    filePattern: 'muni_preds_{date}.json',
+                 mosquitoAlertES: {
+                     enabled: true,
+                     baseUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/main/data/',
+                     filePattern: 'muni_preds_{date}.json',
                      description: 'Data from MosquitoAlertES - Citizen science mosquito surveillance',
                      municipalityBoundariesLowRes: 'mapbox://johnrbpalmer.4bfv6pbn',
-                      municipalityBoundariesHighRes: 'mapbox://johnrbpalmer.48qdct4s',
-                      municipalitySourceLayerLowRes: 'spain_municipality_boundaries-7m7u82',
-                      municipalitySourceLayerHighRes: 'spain_municipality_boundaries-dzvpt0',
+                     municipalityBoundariesHighRes: 'mapbox://johnrbpalmer.48qdct4s',
+                     municipalitySourceLayerLowRes: 'spain_municipality_boundaries-7m7u82',
+                     municipalitySourceLayerHighRes: 'spain_municipality_boundaries-dzvpt0',
                      mapboxAccessToken: 'pk.eyJ1Ijoiam9obnJicGFsbWVyIiwiYSI6ImFRTXhoaHcifQ.UwIptK0Is5dJdN8q-1djww',
                      maxVRI: 0.3,
-                        observationsUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/refs/heads/main/data/model_training_reports_lonlat.json',
-                      // File pattern for 1km grid GeoTIFFs from MosquitoAlertES repository
-                      gridFilePattern: 'a004_MA_predictions_all_spain_aemet_weather_forecast_pred_raster_brms_MC10_1000_{date}.tiff',
-                      gridMaxVRI: 0.3
-                  }
+                     observationsUrl: 'https://raw.githubusercontent.com/Mosquito-Alert/MosquitoAlertES/refs/heads/main/data/model_training_reports_lonlat.json',
+                     // File pattern for 1km grid GeoTIFFs from MosquitoAlertES repository
+                     gridFilePattern: 'a004_MA_predictions_all_spain_aemet_weather_forecast_pred_raster_brms_MC10_1000_{date}.tiff',
+                     gridMaxVRI: 0.3
+                 }
               },
              comingSoon: false
          },

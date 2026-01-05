@@ -25,6 +25,58 @@ function sanitizeHtml(html) {
 }
 
 /**
+ * Build a GeoJSON point feature for an observation if presence is true and coordinates are valid.
+ * Returns null for absence entries or invalid coordinates to skip rendering.
+ * @param {number} lat
+ * @param {number} lon
+ * @param {boolean|string} presenceRaw
+ * @param {string} date
+ * @param {Object} properties
+ * @returns {Object|null}
+ */
+function buildObservationFeature(lat, lon, presenceRaw, date, properties = {}) {
+    const isPresent = typeof presenceRaw === 'string'
+        ? presenceRaw.toLowerCase() === 'true'
+        : Boolean(presenceRaw);
+
+    if (!isPresent || !Number.isFinite(lat) || !Number.isFinite(lon)) {
+        return null;
+    }
+
+    return {
+        type: 'Feature',
+        geometry: {
+            type: 'Point',
+            coordinates: [lon, lat]
+        },
+        properties: {
+            ...properties,
+            presence: true,
+            date
+        }
+    };
+}
+
+/**
+ * Attempt to load observation data as GeoJSON when available
+ * @param {string} url
+ * @returns {Promise<Object|null>}
+ */
+async function tryLoadObservationGeoJSON(url) {
+    const lowerUrl = url.toLowerCase();
+    try {
+        const response = await fetch(url);
+        const contentType = (response.headers.get('content-type') || '').toLowerCase();
+        if (response.ok && (contentType.includes('json') || lowerUrl.endsWith('.json') || lowerUrl.endsWith('.geojson'))) {
+            return await response.json();
+        }
+    } catch (err) {
+        console.warn('Could not load observations as GeoJSON:', err);
+    }
+    return null;
+}
+
+/**
  * Get the currently selected model
  * @returns {string}
  */
@@ -241,6 +293,7 @@ function setupLayerControls() {
  * Toggle layer visibility and ensure data is available
  * @param {string} selectedLayer
  * @param {boolean} isVisible
+ * @returns {Promise<void>}
  */
 async function handleLayerSelection(selectedLayer, isVisible) {
     if (!mapManager || !mapManager.currentRegion) {
@@ -267,9 +320,11 @@ async function handleLayerSelection(selectedLayer, isVisible) {
 
         const selectedModel = getSelectedModel();
         if (regionKey === 'spain' && region?.dataSources?.mosquitoAlertES?.enabled && selectedModel === 'mosquito-alert-municipalities') {
-            const hasMapboxLayers = mapManager.mbMap &&
-                mapManager.mbMap.getLayer('muni-high-res') &&
-                mapManager.mbMap.getLayer('muni-low-res');
+            const mbMap = mapManager.mbMap;
+            const hasMapboxLayers = Boolean(
+                mbMap?.getLayer('muni-high-res') ||
+                mbMap?.getLayer('muni-low-res')
+            );
             if (!hasMapboxLayers) {
                 const datePicker = document.getElementById('data-date-picker');
                 const dateToLoad = datePicker && datePicker.value ? datePicker.value : new Date().toISOString().split('T')[0];
@@ -650,13 +705,8 @@ async function loadObservationOverlay(regionKey) {
     const visible = checkbox ? checkbox.checked : false;
 
     try {
-        const lowerUrl = observationsUrl.toLowerCase();
         let features = [];
-        let geojsonData = null;
-
-        if (lowerUrl.endsWith('.json') || lowerUrl.endsWith('.geojson')) {
-            geojsonData = await dataLoader.loadGeoJSON(observationsUrl);
-        }
+        const geojsonData = await tryLoadObservationGeoJSON(observationsUrl);
 
         if (geojsonData && Array.isArray(geojsonData.features)) {
             features = geojsonData.features.map(feature => {
@@ -670,53 +720,18 @@ async function loadObservationOverlay(regionKey) {
                     feature?.properties?.Date ||
                     feature?.properties?.DATE ||
                     '';
-                const isPresent = typeof presenceRaw === 'string'
-                    ? presenceRaw.toLowerCase() === 'true'
-                    : Boolean(presenceRaw);
-
-                if (!isPresent || !Number.isFinite(lat) || !Number.isFinite(lon)) {
-                    return null;
-                }
-
-                return {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [lon, lat]
-                    },
-                    properties: {
-                        ...feature.properties,
-                        presence: true,
-                        date
-                    }
-                };
+                return buildObservationFeature(lat, lon, presenceRaw, date, feature.properties || {});
             }).filter(Boolean);
-        } else {
+        }
+
+        if (!features.length) {
             const csvData = await dataLoader.loadCSV(observationsUrl);
             features = (csvData || []).map(row => {
                 const lat = parseFloat(row.lat ?? row.Latitude ?? row.latitude);
                 const lon = parseFloat(row.lon ?? row.Longitude ?? row.longitude);
                 const presenceRaw = row.presence ?? row.PRESENCE ?? row.Presence;
                 const date = row.date || row.Date || '';
-                const isPresent = typeof presenceRaw === 'string' ?
-                    presenceRaw.toLowerCase() === 'true' :
-                    Boolean(presenceRaw);
-
-                if (!isPresent || !Number.isFinite(lat) || !Number.isFinite(lon)) {
-                    return null;
-                }
-
-                return {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [lon, lat]
-                    },
-                    properties: {
-                        presence: true,
-                        date: date
-                    }
-                };
+                return buildObservationFeature(lat, lon, presenceRaw, date, {});
             }).filter(Boolean);
         }
 
@@ -727,7 +742,6 @@ async function loadObservationOverlay(regionKey) {
 
         mapManager.addObservationLayer(geojson, visible, {
             fillColor: '#ffd92f',           // Yellow for presence points
-            fillColorAbsence: '#a6cee3',    // Light blue for absence points
             strokeColor: '#000000',
             strokeWidth: 1.5,
             radius: regionKey === 'barcelona' ? 7 : 6,
