@@ -273,7 +273,7 @@ async function handleLayerSelection(selectedLayer) {
             }
         }
 
-        setBasemapSelectorAvailability(false, 'Basemap selection available for observations view');
+        setBasemapSelectorAvailability(false, 'Basemap selection enabled for observations view');
         mapManager.toggleLayer('risk', false);
         await loadObservationOverlay(regionKey);
         mapManager.toggleLayer('observations', true);
@@ -295,8 +295,6 @@ async function handleLayerSelection(selectedLayer) {
             await loadBarcelonaMosquitoAlertData(dateToLoad);
         } else if (!mapManager.layers.risk && !mapManager.layers.geotiff) {
             await mapManager.loadRegion(regionKey);
-        } else {
-            mapManager.toggleLayer('risk', true);
         }
 
         mapManager.toggleLayer('observations', false);
