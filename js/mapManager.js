@@ -28,6 +28,10 @@ class MapManager {
             this.mbMap.remove();
             this.mbMap = null;
         }
+        const mapContainer = document.getElementById('map');
+        if (mapContainer) {
+            mapContainer.innerHTML = '';
+        }
 
         this.map = L.map('map').setView(CONFIG.defaultCenter, CONFIG.defaultZoom);
         
