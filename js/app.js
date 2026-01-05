@@ -273,7 +273,7 @@ async function handleLayerSelection(selectedLayer) {
             }
         }
 
-        setBasemapSelectorAvailability(false, 'Basemap selection enabled for observations view');
+        setBasemapSelectorAvailability(false, 'Basemap selection available in observations view');
         mapManager.toggleLayer('risk', false);
         await loadObservationOverlay(regionKey);
         mapManager.toggleLayer('observations', true);
