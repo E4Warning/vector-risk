@@ -184,22 +184,18 @@ function setupNavigation() {
  * Set up layer control event listeners
  */
 function setupLayerControls() {
-    const riskLayerRadio = document.getElementById('risk-layer');
-    const observationsLayerRadio = document.getElementById('observations-layer');
+    const riskLayerCheckbox = document.getElementById('risk-layer');
+    const observationsLayerCheckbox = document.getElementById('observations-layer');
     
-    if (riskLayerRadio) {
-        riskLayerRadio.addEventListener('change', async function() {
-            if (this.checked) {
-                await handleLayerSelection('risk');
-            }
+    if (riskLayerCheckbox) {
+        riskLayerCheckbox.addEventListener('change', async function() {
+            await handleLayerSelection('risk', this.checked);
         });
     }
     
-    if (observationsLayerRadio) {
-        observationsLayerRadio.addEventListener('change', async function() {
-            if (this.checked) {
-                await handleLayerSelection('observations');
-            }
+    if (observationsLayerCheckbox) {
+        observationsLayerCheckbox.addEventListener('change', async function() {
+            await handleLayerSelection('observations', this.checked);
         });
     }
     
@@ -242,54 +238,43 @@ function setupLayerControls() {
 }
 
 /**
- * Ensure only one layer is active and handle map transitions for observations
+ * Toggle layer visibility and ensure data is available
  * @param {string} selectedLayer
+ * @param {boolean} isVisible
  */
-async function handleLayerSelection(selectedLayer) {
+async function handleLayerSelection(selectedLayer, isVisible) {
     if (!mapManager || !mapManager.currentRegion) {
         return;
     }
 
     const regionKey = mapManager.currentRegion;
     const region = CONFIG.regions[regionKey];
-    const riskLayerRadio = document.getElementById('risk-layer');
-    const observationsLayerRadio = document.getElementById('observations-layer');
-
     if (selectedLayer === 'observations') {
-        if (riskLayerRadio) riskLayerRadio.checked = false;
-        if (observationsLayerRadio) observationsLayerRadio.checked = true;
-
-        // If a Mapbox map is active, replace it with Leaflet so observations render correctly
-        const wasMapbox = Boolean(mapManager.mbMap);
-        if (mapManager.mbMap) {
-            mapManager.mbMap.remove();
-            mapManager.mbMap = null;
+        if (!isVisible) {
+            mapManager.toggleLayer('observations', false);
+            return;
         }
-
-        if (!mapManager.map || wasMapbox) {
-            mapManager.initMap();
-            if (region?.center && region?.zoom) {
-                mapManager.map.setView(region.center, region.zoom);
-            }
-        }
-
-        // Pass `true` to disable the selector while observations are shown
-        setBasemapSelectorAvailability(true, 'Basemap selection is disabled in observations view');
-        mapManager.toggleLayer('risk', false);
         await loadObservationOverlay(regionKey);
         mapManager.toggleLayer('observations', true);
         return;
     }
 
     if (selectedLayer === 'risk') {
-        if (riskLayerRadio) riskLayerRadio.checked = true;
-        if (observationsLayerRadio) observationsLayerRadio.checked = false;
+        if (!isVisible) {
+            mapManager.toggleLayer('risk', false);
+            return;
+        }
 
         const selectedModel = getSelectedModel();
         if (regionKey === 'spain' && region?.dataSources?.mosquitoAlertES?.enabled && selectedModel === 'mosquito-alert-municipalities') {
-            const datePicker = document.getElementById('data-date-picker');
-            const dateToLoad = datePicker && datePicker.value ? datePicker.value : new Date().toISOString().split('T')[0];
-            await loadSpainMosquitoAlertData(dateToLoad, selectedModel);
+            const hasMapboxLayers = mapManager.mbMap &&
+                mapManager.mbMap.getLayer('muni-high-res') &&
+                mapManager.mbMap.getLayer('muni-low-res');
+            if (!hasMapboxLayers) {
+                const datePicker = document.getElementById('data-date-picker');
+                const dateToLoad = datePicker && datePicker.value ? datePicker.value : new Date().toISOString().split('T')[0];
+                await loadSpainMosquitoAlertData(dateToLoad, selectedModel);
+            }
         } else if (regionKey === 'barcelona' && region?.dataSources?.mosquitoAlertBCN?.enabled && !mapManager.layers.geotiff) {
             const datePicker = document.getElementById('data-date-picker');
             const dateToLoad = datePicker && datePicker.value ? datePicker.value : new Date().toISOString().split('T')[0];
@@ -298,7 +283,6 @@ async function handleLayerSelection(selectedLayer) {
             await mapManager.loadRegion(regionKey);
         }
 
-        mapManager.toggleLayer('observations', false);
         mapManager.toggleLayer('risk', true);
     }
 }
@@ -666,33 +650,75 @@ async function loadObservationOverlay(regionKey) {
     const visible = checkbox ? checkbox.checked : false;
 
     try {
-        const csvData = await dataLoader.loadCSV(observationsUrl);
-        const features = (csvData || []).map(row => {
-            const lat = parseFloat(row.lat ?? row.Latitude ?? row.latitude);
-            const lon = parseFloat(row.lon ?? row.Longitude ?? row.longitude);
-            const presenceRaw = row.presence ?? row.PRESENCE ?? row.Presence;
-            const date = row.date || row.Date || '';
-            const isPresent = typeof presenceRaw === 'string' ?
-                presenceRaw.toLowerCase() === 'true' :
-                Boolean(presenceRaw);
+        const lowerUrl = observationsUrl.toLowerCase();
+        let features = [];
+        let geojsonData = null;
 
-            // Only filter out invalid coordinates, not based on presence
-            if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-                return null;
-            }
+        if (lowerUrl.endsWith('.json') || lowerUrl.endsWith('.geojson')) {
+            geojsonData = await dataLoader.loadGeoJSON(observationsUrl);
+        }
 
-            return {
-                type: 'Feature',
-                geometry: {
-                    type: 'Point',
-                    coordinates: [lon, lat]
-                },
-                properties: {
-                    presence: isPresent,
-                    date: date
+        if (geojsonData && Array.isArray(geojsonData.features)) {
+            features = geojsonData.features.map(feature => {
+                const coords = feature?.geometry?.coordinates || [];
+                const lon = parseFloat(coords[0]);
+                const lat = parseFloat(coords[1]);
+                const presenceRaw = feature?.properties?.presence ??
+                    feature?.properties?.PRESENCE ??
+                    feature?.properties?.Presence;
+                const date = feature?.properties?.date ||
+                    feature?.properties?.Date ||
+                    feature?.properties?.DATE ||
+                    '';
+                const isPresent = typeof presenceRaw === 'string'
+                    ? presenceRaw.toLowerCase() === 'true'
+                    : Boolean(presenceRaw);
+
+                if (!isPresent || !Number.isFinite(lat) || !Number.isFinite(lon)) {
+                    return null;
                 }
-            };
-        }).filter(Boolean);
+
+                return {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [lon, lat]
+                    },
+                    properties: {
+                        ...feature.properties,
+                        presence: true,
+                        date
+                    }
+                };
+            }).filter(Boolean);
+        } else {
+            const csvData = await dataLoader.loadCSV(observationsUrl);
+            features = (csvData || []).map(row => {
+                const lat = parseFloat(row.lat ?? row.Latitude ?? row.latitude);
+                const lon = parseFloat(row.lon ?? row.Longitude ?? row.longitude);
+                const presenceRaw = row.presence ?? row.PRESENCE ?? row.Presence;
+                const date = row.date || row.Date || '';
+                const isPresent = typeof presenceRaw === 'string' ?
+                    presenceRaw.toLowerCase() === 'true' :
+                    Boolean(presenceRaw);
+
+                if (!isPresent || !Number.isFinite(lat) || !Number.isFinite(lon)) {
+                    return null;
+                }
+
+                return {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [lon, lat]
+                    },
+                    properties: {
+                        presence: true,
+                        date: date
+                    }
+                };
+            }).filter(Boolean);
+        }
 
         const geojson = {
             type: 'FeatureCollection',
