@@ -154,17 +154,17 @@
                             <h3>Layers</h3>
                             <div class="layer-controls">
                                 <label>
-                                    <input type="checkbox" id="risk-layer" checked>
+                                    <input type="radio" name="layer-toggle" id="risk-layer" checked>
                                     Risk Level
                                 </label>
                                 <label class="disabled">
-                                    <input type="checkbox" id="observations-layer" disabled>
+                                    <input type="radio" name="layer-toggle" id="observations-layer" disabled>
                                     Observations
                                 </label>
-                                <label class="disabled">
-                                    <input type="checkbox" id="range-layer" disabled>
+                                <!-- <label class="disabled">
+                                    <input type="radio" name="layer-toggle" id="range-layer" disabled>
                                     Range
-                                </label>
+                                </label> -->
                             </div>
                         </div>
                         
@@ -184,6 +184,20 @@
                                 <div class="legend-label-top">High</div>
                                 <div class="legend-gradient"></div>
                                 <div class="legend-label-bottom">Low</div>
+                            </div>
+                        </div>
+                        
+                        <div class="sidebar-section" id="observations-legend-section" style="display: none;">
+                            <h3>Observations Legend</h3>
+                            <div class="legend">
+                                <div class="legend-item">
+                                    <span class="legend-color obs-presence"></span>
+                                    <span>Presence</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color obs-absence"></span>
+                                    <span>Absence</span>
+                                </div>
                             </div>
                         </div>
                         

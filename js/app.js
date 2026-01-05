@@ -184,25 +184,22 @@ function setupNavigation() {
  * Set up layer control event listeners
  */
 function setupLayerControls() {
-    const riskLayerCheckbox = document.getElementById('risk-layer');
-    const observationsLayerCheckbox = document.getElementById('observations-layer');
-    const rangeLayerCheckbox = document.getElementById('range-layer');
+    const riskLayerRadio = document.getElementById('risk-layer');
+    const observationsLayerRadio = document.getElementById('observations-layer');
     
-    if (riskLayerCheckbox) {
-        riskLayerCheckbox.addEventListener('change', function() {
-            mapManager.toggleLayer('risk', this.checked);
+    if (riskLayerRadio) {
+        riskLayerRadio.addEventListener('change', async function() {
+            if (this.checked) {
+                await handleLayerSelection('risk');
+            }
         });
     }
     
-    if (observationsLayerCheckbox) {
-        observationsLayerCheckbox.addEventListener('change', function() {
-            mapManager.toggleLayer('observations', this.checked);
-        });
-    }
-    
-    if (rangeLayerCheckbox) {
-        rangeLayerCheckbox.addEventListener('change', function() {
-            mapManager.toggleLayer('range', this.checked);
+    if (observationsLayerRadio) {
+        observationsLayerRadio.addEventListener('change', async function() {
+            if (this.checked) {
+                await handleLayerSelection('observations');
+            }
         });
     }
     
@@ -241,6 +238,68 @@ function setupLayerControls() {
                 await loadObservationOverlay('spain');
             }
         });
+    }
+}
+
+/**
+ * Ensure only one layer is active and handle map transitions for observations
+ * @param {string} selectedLayer
+ */
+async function handleLayerSelection(selectedLayer) {
+    if (!mapManager || !mapManager.currentRegion) {
+        return;
+    }
+
+    const regionKey = mapManager.currentRegion;
+    const region = CONFIG.regions[regionKey];
+    const riskLayerRadio = document.getElementById('risk-layer');
+    const observationsLayerRadio = document.getElementById('observations-layer');
+
+    if (selectedLayer === 'observations') {
+        if (riskLayerRadio) riskLayerRadio.checked = false;
+        if (observationsLayerRadio) observationsLayerRadio.checked = true;
+
+        // If a Mapbox map is active, replace it with Leaflet so observations render correctly
+        const wasMapbox = Boolean(mapManager.mbMap);
+        if (mapManager.mbMap) {
+            mapManager.mbMap.remove();
+            mapManager.mbMap = null;
+        }
+
+        if (!mapManager.map || wasMapbox) {
+            mapManager.initMap();
+            if (region?.center && region?.zoom) {
+                mapManager.map.setView(region.center, region.zoom);
+            }
+        }
+
+        // Pass `true` to disable the selector while observations are shown
+        setBasemapSelectorAvailability(true, 'Basemap selection is disabled in observations view');
+        mapManager.toggleLayer('risk', false);
+        await loadObservationOverlay(regionKey);
+        mapManager.toggleLayer('observations', true);
+        return;
+    }
+
+    if (selectedLayer === 'risk') {
+        if (riskLayerRadio) riskLayerRadio.checked = true;
+        if (observationsLayerRadio) observationsLayerRadio.checked = false;
+
+        const selectedModel = getSelectedModel();
+        if (regionKey === 'spain' && region?.dataSources?.mosquitoAlertES?.enabled && selectedModel === 'mosquito-alert-municipalities') {
+            const datePicker = document.getElementById('data-date-picker');
+            const dateToLoad = datePicker && datePicker.value ? datePicker.value : new Date().toISOString().split('T')[0];
+            await loadSpainMosquitoAlertData(dateToLoad, selectedModel);
+        } else if (regionKey === 'barcelona' && region?.dataSources?.mosquitoAlertBCN?.enabled && !mapManager.layers.geotiff) {
+            const datePicker = document.getElementById('data-date-picker');
+            const dateToLoad = datePicker && datePicker.value ? datePicker.value : new Date().toISOString().split('T')[0];
+            await loadBarcelonaMosquitoAlertData(dateToLoad);
+        } else if (!mapManager.layers.risk && !mapManager.layers.geotiff) {
+            await mapManager.loadRegion(regionKey);
+        }
+
+        mapManager.toggleLayer('observations', false);
+        mapManager.toggleLayer('risk', true);
     }
 }
 
@@ -298,6 +357,7 @@ async function showRegion(regionKey) {
     const observationsLayerCheckbox = document.getElementById('observations-layer');
     const observationsLabel = observationsLayerCheckbox ? observationsLayerCheckbox.closest('label') : null;
     const rangeLayerCheckbox = document.getElementById('range-layer');
+    const observationsLegendSection = document.getElementById('observations-legend-section');
 
     // Reset layer checkboxes to defaults when switching regions
     if (riskLayerCheckbox) {
@@ -316,6 +376,9 @@ async function showRegion(regionKey) {
         region?.dataSources?.mosquitoAlertES?.observationsUrl ||
         region?.dataSources?.mosquitoAlertBCN?.observationsUrl
     );
+    if (observationsLegendSection) {
+        observationsLegendSection.style.display = supportsObservations ? 'block' : 'none';
+    }
     if (!supportsObservations) {
         mapManager.removeObservationLayer();
     }

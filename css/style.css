@@ -442,6 +442,14 @@ main {
     border: 1px solid var(--border-color);
 }
 
+.obs-presence {
+    background-color: #ffd92f;
+}
+
+.obs-absence {
+    background-color: #a6cee3;
+}
+
 /* Continuous Legend */
 .legend-continuous {
     display: flex;
